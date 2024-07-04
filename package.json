@@ -1,0 +1,107 @@
+{
+    "name": "aider",
+    "displayName": "Aider",
+    "description": "VSCode extension for running Aider",
+    "icon": "images/AiderExtension.png",
+    "version": "0.0.9",
+    "publisher": "MattFlower",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/MattFlower/vscode-aider-extension"
+    },
+    "engines": {
+        "vscode": "^1.50.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [],
+    "main": "./out/extension.js",
+    "contributes": {
+        "configuration": {
+            "title": "Aider",
+            "properties": {
+                "aider.ignoreFiles": {
+                    "type": "array",
+                    "default": [],
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "List of regexes that match filenames that won't automatically be added to the Aider terminal process."
+                },
+                "aider.openaiApiKey": {
+                    "type": "string",
+                    "default": "",
+                    "description": "OpenAI API Key."
+                },
+                "aider.anthropicApiKey": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Anthropic API Key."
+                },
+                "aider.commandLine": {
+                    "type": "string",
+                    "default": "aider",
+                    "description": "Set that command to run aider.  This can be a path to a binary or a command that is available on the path.  You may also include parameters to aider."
+                },
+                "aider.workingDirectory": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Set the working directory for Aider. Leave empty to use the workspace root or the directory of the active file."
+                }
+            }
+        },
+        "commands": [
+            {
+                "command": "aider.add",
+                "title": "Aider: Add File"
+            },
+            {
+                "command": "aider.drop",
+                "title": "Aider: Drop File"
+            },
+            {
+                "command": "aider.syncFiles",
+                "title": "Aider: Sync Open Files"
+            },
+            {
+                "command": "aider.debugInfo",
+                "title": "Aider: Show Debug Info"
+            },
+            {
+                "command": "aider.open",
+                "title": "Aider: Open"
+            },
+            {
+                "command": "aider.close",
+                "title": "Aider: Close"
+            },
+            {
+                "command": "aider.selectModel",
+                "title": "Aider: Select Model"
+            },
+            {
+                "command": "aider.generateReadme",
+                "title": "Aider: Generate README.md"
+            }
+        ]
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "postinstall": "node ./node_modules/vscode/bin/install",
+        "test": "npm run compile && node ./node_modules/vscode/bin/test",
+        "build": "vsce package"
+    },
+    "devDependencies": {
+        "@types/jest": "^29.5.10",
+        "@types/node": "20.10.0",
+        "jest": "^29.7.0",
+        "ts-jest": "^29.1.1",
+        "ts-node": "^10.9.1",
+        "tslint": "5.20.1",
+        "typescript": "5.3.2",
+        "vscode": "1.1.37"
+    }
+}
