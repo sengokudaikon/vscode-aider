@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
 import { AiderInterface, AiderTerminal } from './AiderTerminal';
-import fs = require('fs');
-import path = require('path');
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
 
 export function convertToRelativePath(filePath: string, workingDirectory: string): string {
     if (path.isAbsolute(filePath)) {
@@ -13,7 +14,7 @@ export function convertToRelativePath(filePath: string, workingDirectory: string
 let aider: AiderInterface | null = null;
 let filesThatAiderKnows = new Set<string>();
 let calculatedWorkingDirectory: string | undefined = undefined;
-let selectedModel: string = '--4o'; // Default model
+let selectedModel: string = '--sonnet'; // Default model
 let statusBarItem: vscode.StatusBarItem | undefined;
 
 /**
@@ -35,26 +36,28 @@ async function createAider() {
         calculatedWorkingDirectory = workingDirectory;
         aider = new AiderTerminal(openaiApiKey, anthropicApiKey, aiderCommandLine, handleAiderClose, workingDirectory, selectedModel);
         
-        // Collect all open files from both sources
-        const openFiles = new Set<string>();
-        vscode.workspace.textDocuments.forEach((document) => {
-            if (document.uri.scheme === "file" && document.fileName && aider?.isWorkspaceFile(document.fileName)) {
-                openFiles.add(document.fileName);
-            }
-        });
-        vscode.window.visibleTextEditors.forEach((editor) => {
-            if (editor.document.uri.scheme === "file" && editor.document.fileName && aider?.isWorkspaceFile(editor.document.fileName)) {
-                openFiles.add(editor.document.fileName);
-            }
-        });
+        if (aider) {
+            // Collect all open files from both sources
+            const openFiles = new Set<string>();
+            vscode.workspace.textDocuments.forEach((document) => {
+                if (document.uri.scheme === "file" && document.fileName && aider?.isWorkspaceFile(document.fileName)) {
+                    openFiles.add(document.fileName);
+                }
+            });
+            vscode.window.visibleTextEditors.forEach((editor) => {
+                if (editor.document.uri.scheme === "file" && editor.document.fileName && aider?.isWorkspaceFile(editor.document.fileName)) {
+                    openFiles.add(editor.document.fileName);
+                }
+            });
 
-        // Add all open files to Aider
-        openFiles.forEach((filePath) => {
-            filesThatAiderKnows.add(filePath);
-        });
-        aider.addFiles(Array.from(openFiles));
+            // Add all open files to Aider
+            openFiles.forEach((filePath) => {
+                filesThatAiderKnows.add(filePath);
+            });
+            aider.addFiles(Array.from(openFiles));
 
-        aider.show();
+            aider.show();
+        }
     }).catch((err) => {
         vscode.window.showErrorMessage(`Error starting Aider: ${err}`);
     });
@@ -149,31 +152,19 @@ export async function findWorkingDirectory(overridePath?: string): Promise<strin
 }
 
 function findGitDirectoryInSelfOrParents(filePath: string): string {
-    let dirs: string[] = filePath.split(path.sep).filter((item) => { return item !== ""});
-    while (dirs.length > 0) {
+    const parts = filePath.split(path.sep);
+    while (parts.length > 0) {
+        const dir = path.join(...parts, '.git');
         try {
-            let isWin = path.sep === "\\";
-            let dir;
-            if (dirs && isWin) {
-                dir = dirs.join("\\") + "\\.git";
-            } else {
-                dir = "/" + dirs.join("/") + "/.git";
+            if (fs.statSync(dir).isDirectory()) {
+                return path.join(...parts);
             }
-            if (fs.statSync(dir) !== undefined) {
-                if (isWin) {
-                    return dirs.join("\\") + "\\";
-                } else {
-                    return "/" + dirs.join("/") + "/";
-                }
-            } else {
-                dirs.pop();
-            }
-        } catch(err) {
-            dirs.pop();
+        } catch (err) {
+            // Directory doesn't exist, continue searching
         }
+        parts.pop();
     }
-
-    return "/";
+    return path.parse(filePath).root;
 }
 
 /**
@@ -214,9 +205,9 @@ export function activate(context: vscode.ExtensionContext) {
 
     let disposable = vscode.commands.registerCommand('aider.selectModel', async () => {
         const models = [
-            { label: '$(robot) GPT-4o (Default)', value: '--4o', description: selectedModel === '--4o' ? '(Current)' : '' },
-            { label: '$(sparkle) Claude 3.5 Sonnet', value: '--sonnet', description: selectedModel === '--sonnet' ? '(Current)' : '' },
-            { label: '$(star) Claude 3 Opus', value: '--opus', description: selectedModel === '--opus' ? '(Current)' : '' }
+            { label: '$(sparkle) Claude 3.5 Sonnet (Default)', value: '--sonnet', description: selectedModel === '--sonnet' ? '(Current)' : '' },
+            { label: '$(star) Claude 3 Opus', value: '--opus', description: selectedModel === '--opus' ? '(Current)' : '' },
+            { label: '$(robot) GPT-4o', value: '--4o', description: selectedModel === '--4o' ? '(Current)' : '' }
         ];
         const selectedModelOption = await vscode.window.showQuickPick(models, {
             placeHolder: 'Select a model for Aider',
@@ -254,16 +245,15 @@ export function activate(context: vscode.ExtensionContext) {
     });
     context.subscriptions.push(disposable);
     vscode.workspace.onDidOpenTextDocument((document) => {
-        if (aider) {
-            if (document.uri.scheme === "file" && document.fileName && aider.isWorkspaceFile(document.fileName)) {
-                let filePath = document.fileName;
-                let ignoreFiles = vscode.workspace.getConfiguration('aider').get('ignoreFiles') as string[];
-                let shouldIgnore = ignoreFiles.some((regex) => new RegExp(regex).test(filePath));
+        if (aider && document.uri.scheme === "file" && document.fileName) {
+            const filePath = document.fileName;
+            const relativePath = path.relative(calculatedWorkingDirectory || '', filePath).replace(/\\/g, '/');
+            const ignoreFiles = vscode.workspace.getConfiguration('aider').get('ignoreFiles') as string[];
+            const shouldIgnore = ignoreFiles.some((regex) => new RegExp(regex).test(relativePath));
 
-                if (!shouldIgnore) {
-                    aider.addFile(filePath);
-                    filesThatAiderKnows.add(document.fileName);
-                }
+            if (!shouldIgnore && aider.isWorkspaceFile(filePath)) {
+                aider.addFile(filePath);
+                filesThatAiderKnows.add(filePath);
             }
         }
     });

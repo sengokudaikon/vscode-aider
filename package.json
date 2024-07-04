@@ -1,6 +1,6 @@
 {
-    "name": "aider",
-    "displayName": "Aider",
+    "name": "aider-mod",
+    "displayName": "Aider (Mod)",
     "description": "VSCode extension for running Aider",
     "icon": "images/AiderExtension.png",
     "version": "0.0.9",

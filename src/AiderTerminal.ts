@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as os from 'os';
+import * as path from 'path';
 import { convertToRelativePath } from './extension';
 
 export interface AiderInterface {
@@ -9,7 +10,7 @@ export interface AiderInterface {
     dropFile(filePath: string) : void;
     dropFiles(filePaths: string[]) : void;
     isWorkspaceFile(filePath: string) : boolean;
-    sendCommand(command: string) : void;    
+    sendCommand(command: string, paths?: string[]) : void;    
     show(): void;
     isActive(): boolean;
 }
@@ -42,7 +43,10 @@ export class AiderTerminal implements AiderInterface {
 
         if (process.platform === 'win32') {
             opts['shellPath'] = 'cmd.exe';
-            opts['shellArgs'] = ['/k', 'cd ' + this._workingDirectory];
+            opts['shellArgs'] = ['/k', `cd /d "${this._workingDirectory}"`];
+        } else {
+            opts['shellPath'] = '/bin/sh';
+            opts['shellArgs'] = ['-c', `cd "${this._workingDirectory}" && exec $SHELL`];
         }
 
         this._terminal = vscode.window.createTerminal(opts);
@@ -66,30 +70,43 @@ export class AiderTerminal implements AiderInterface {
         return filePath.substring(this._workingDirectory.length);
     }
 
-    addFile(filePath: string) : void {
-        const relativePath = convertToRelativePath(filePath, this._workingDirectory);
-        this._terminal.sendText(this.formatCommand(`/add ${relativePath}`));
+    private formatPath(filePath: string): string {
+        const relativePath = path.relative(this._workingDirectory, filePath);
+        return relativePath.replace(/\\/g, '/');
     }
 
-    addFiles(filePaths: string[]) : void {
-        if (filePaths.length === 0) {
-            return;
+    sendCommand(command: string, paths?: string[]): void {
+        let fullCommand: string;
+        if (paths) {
+            const formattedPaths = paths.map(p => {
+                const formatted = this.formatPath(p);
+                return formatted.includes(' ') ? `"${formatted}"` : formatted;
+            }).join(' ');
+            fullCommand = `${command} ${formattedPaths}`;
+        } else {
+            fullCommand = command;
         }
-
-        const relativePaths = filePaths.map(filePath => convertToRelativePath(filePath, this._workingDirectory));
-        this._terminal.sendText(this.formatCommand(`/add ${relativePaths.join(' ')}`));
+        this._terminal.sendText(fullCommand + os.EOL);
     }
 
-    dropFile(filePath: string) : void {
-        this._terminal.sendText(this.formatCommand(`/drop ${this.getRelativeDirectory(filePath)}`));
+    addFile(filePath: string): void {
+        this.sendCommand('/add', [filePath]);
     }
 
-    dropFiles(filePaths: string[]) : void {
-        if (filePaths.length === 0) {
-            return;
+    addFiles(filePaths: string[]): void {
+        if (filePaths.length > 0) {
+            this.sendCommand('/add', filePaths);
         }
+    }
 
-        this._terminal.sendText(this.formatCommand(`/drop ${filePaths.map((filePath) => this.getRelativeDirectory(filePath)).join(' ')}`));
+    dropFile(filePath: string): void {
+        this.sendCommand('/drop', [filePath]);
+    }
+
+    dropFiles(filePaths: string[]): void {
+        if (filePaths.length > 0) {
+            this.sendCommand('/drop', filePaths);
+        }
     }
 
     dispose() : void {
@@ -108,16 +125,13 @@ export class AiderTerminal implements AiderInterface {
         return filePath.startsWith(this._workingDirectory);
     }
 
-    sendCommand(command: string) : void {
-        this._terminal.sendText(this.formatCommand(command));
-    }
 
     show(): void {
         this._terminal.show();
     }
 
     private formatCommand(command: string): string {
-        return process.platform === 'win32' ? `${command}${os.EOL}` : command;
+        return `${command}${os.EOL}`;
     }
 }
 
