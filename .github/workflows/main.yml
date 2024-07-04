@@ -1,0 +1,40 @@
+name: Build VS Code Extension
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '14'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install VSCE
+        run: npm install -g @vscode/vsce
+
+      - name: Lint, test, and build
+        run: npm run compile
+
+      - name: Package extension
+        run: vsce package
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: my-extension
+          path: '*.vsix'
