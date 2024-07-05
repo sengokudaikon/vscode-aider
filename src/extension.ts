@@ -3,6 +3,7 @@ import { AiderInterface, AiderTerminal } from './AiderTerminal';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
+import { refactorCodeSnippet } from './refactor';
 
 export function convertToRelativePath(filePath: string, workingDirectory: string): string {
     if (path.isAbsolute(filePath)) {
@@ -15,12 +16,21 @@ let aider: AiderInterface | null = null;
 let filesThatAiderKnows = new Set<string>();
 let calculatedWorkingDirectory: string | undefined = undefined;
 let selectedModel: string = '--sonnet'; // Default model
-let statusBarItem: vscode.StatusBarItem | undefined;
+let statusBarItem: vscode.StatusBarItem;
 
 /**
  * Create the Aider interface (currently a terminal) and start it.
  */
 async function createAider() {
+    if (process.platform === 'win32') {
+        const response = await vscode.window.showWarningMessage(
+            'Aider is not yet fully optimized for Windows. Some features may behave unexpectedly. Do you want to continue?',
+            'Yes', 'No'
+        );
+        if (response !== 'Yes') {
+            return;
+        }
+    }
     if (!statusBarItem) {
         statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
         statusBarItem.show();
@@ -188,13 +198,11 @@ vscode.workspace.onDidChangeConfiguration((e) => {
 });
 
 function updateStatusBar() {
-    if (statusBarItem) {
-        const modelName = selectedModel === '--4o' ? 'GPT-4o' : selectedModel === '--sonnet' ? 'Claude 3.5 Sonnet' : 'Claude 3 Opus';
-        statusBarItem.text = `🤖 Aider: ${modelName}`;
-        statusBarItem.command = 'aider.selectModel';
-        statusBarItem.tooltip = 'Click to select Aider model';
-        statusBarItem.show();
-    }
+    const modelName = selectedModel === '--4o' ? 'GPT-4o' : selectedModel === '--sonnet' ? 'Claude 3.5 Sonnet' : 'Claude 3 Opus';
+    statusBarItem.text = `🤖 Aider: ${modelName}`;
+    statusBarItem.command = 'aider.openMenu';
+    statusBarItem.tooltip = 'Click to open Aider management menu';
+    statusBarItem.show();
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -202,6 +210,8 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(statusBarItem);
     updateStatusBar();
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(() => updateStatusBar()));
+
+    context.subscriptions.push(vscode.commands.registerCommand('aider.openMenu', showAiderMenu));
 
     let disposable = vscode.commands.registerCommand('aider.selectModel', async () => {
         const models = [
@@ -244,33 +254,35 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.executeCommand('aider.selectModel');
     });
     context.subscriptions.push(disposable);
-    vscode.workspace.onDidOpenTextDocument((document) => {
-        if (aider && document.uri.scheme === "file" && document.fileName) {
-            const filePath = document.fileName;
-            const relativePath = path.relative(calculatedWorkingDirectory || '', filePath).replace(/\\/g, '/');
-            const ignoreFiles = vscode.workspace.getConfiguration('aider').get('ignoreFiles') as string[];
-            const shouldIgnore = ignoreFiles.some((regex) => new RegExp(regex).test(relativePath));
+    if (process.platform !== 'win32') {
+        vscode.workspace.onDidOpenTextDocument((document) => {
+            if (aider && document.uri.scheme === "file" && document.fileName) {
+                const filePath = document.fileName;
+                const relativePath = path.relative(calculatedWorkingDirectory || '', filePath).replace(/\\/g, '/');
+                const ignoreFiles = vscode.workspace.getConfiguration('aider').get('ignoreFiles') as string[];
+                const shouldIgnore = ignoreFiles.some((regex) => new RegExp(regex).test(relativePath));
 
-            if (!shouldIgnore && aider.isWorkspaceFile(filePath)) {
-                aider.addFile(filePath);
-                filesThatAiderKnows.add(filePath);
-            }
-        }
-    });
-    vscode.workspace.onDidCloseTextDocument((document) => {
-        if (aider) {
-            if (document.uri.scheme === "file" && document.fileName && aider.isWorkspaceFile(document.fileName)) {
-                let filePath = document.fileName;
-                let ignoreFiles = vscode.workspace.getConfiguration('aider').get('ignoreFiles') as string[];
-                let shouldIgnore = ignoreFiles.some((regex) => new RegExp(regex).test(filePath));
-
-                if (!shouldIgnore) {
-                    aider.dropFile(filePath);
-                    filesThatAiderKnows.delete(document.fileName);
+                if (!shouldIgnore && aider.isWorkspaceFile(filePath)) {
+                    aider.addFile(filePath);
+                    filesThatAiderKnows.add(filePath);
                 }
             }
-        }
-    });
+        });
+        vscode.workspace.onDidCloseTextDocument((document) => {
+            if (aider) {
+                if (document.uri.scheme === "file" && document.fileName && aider.isWorkspaceFile(document.fileName)) {
+                    let filePath = document.fileName;
+                    let ignoreFiles = vscode.workspace.getConfiguration('aider').get('ignoreFiles') as string[];
+                    let shouldIgnore = ignoreFiles.some((regex) => new RegExp(regex).test(filePath));
+
+                    if (!shouldIgnore) {
+                        aider.dropFile(filePath);
+                        filesThatAiderKnows.delete(document.fileName);
+                    }
+                }
+            }
+        });
+    }
 
     disposable = vscode.commands.registerCommand('aider.add', function () {
         if (!aider) {
@@ -406,6 +418,13 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(disposable);
 
+    // Register the refactor command
+    disposable = vscode.commands.registerCommand('aider.refactorSnippet', refactorSelectedCode);
+    context.subscriptions.push(disposable);
+
+    disposable = vscode.commands.registerCommand('aider.fixProblem', fixProblemWithAider);
+    context.subscriptions.push(disposable);
+
     // API key management functionality removed
 
 async function generateReadmeWithAider(workspaceRoot: string): Promise<string> {
@@ -423,7 +442,7 @@ async function generateReadmeWithAider(workspaceRoot: string): Promise<string> {
         // This is a placeholder and needs to be replaced with actual implementation
         // that captures Aider's output and returns it as the README content
         setTimeout(() => {
-            resolve("# Project README\n\nThis is a placeholder README content. Replace this with the actual content generated by Aider.");
+            resolve("");
         }, 5000);
     });
 }
@@ -479,4 +498,120 @@ async function generateReadmeContent(workspaceRoot: string): Promise<string> {
 }
 }
 
+class RefactorCodeActionProvider implements vscode.CodeActionProvider {
+    provideCodeActions(document: vscode.TextDocument, range: vscode.Range | vscode.Selection): vscode.CodeAction[] {
+        const refactorAction = new vscode.CodeAction('Refactor with Aider', vscode.CodeActionKind.RefactorRewrite);
+        refactorAction.command = {
+            command: 'aider.refactorSnippet',
+            title: 'Refactor with Aider',
+            arguments: [document, range]
+        };
+        return [refactorAction];
+    }
+}
+
+function refactorSelectedCode() {
+    if (!aider) {
+        vscode.window.showErrorMessage("Aider is not running. Please run the 'Open Aider' command first.");
+        return;
+    }
+
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+        vscode.window.showErrorMessage("No active text editor.");
+        return;
+    }
+
+    const selection = editor.selection;
+    const text = editor.document.getText(selection);
+
+    if (!text) {
+        vscode.window.showErrorMessage("No text selected. Please select a code snippet to refactor.");
+        return;
+    }
+
+    refactorCodeSnippet(aider, text);
+    vscode.window.showInformationMessage("Refactor request sent to Aider. Please wait for the response.");
+}
+
+function fixProblemWithAider(problem?: vscode.Diagnostic) {
+    if (!aider) {
+        vscode.window.showErrorMessage("Aider is not running. Please run the 'Open Aider' command first.");
+        return;
+    }
+
+    const activeEditor = vscode.window.activeTextEditor;
+    if (!activeEditor) {
+        vscode.window.showErrorMessage("No active text editor.");
+        return;
+    }
+
+    if (problem) {
+        // If a specific problem is provided (from the inline menu)
+        handleProblem(activeEditor, problem);
+    } else {
+        // If no specific problem is provided (from the context menu)
+        vscode.commands.executeCommand('problems.action.showCurrentAsProblem').then(() => {
+            const diagnostics = vscode.languages.getDiagnostics(activeEditor.document.uri);
+            if (diagnostics.length === 0) {
+                vscode.window.showInformationMessage("No problems found in the current file.");
+                return;
+            }
+            handleProblem(activeEditor, diagnostics[0]);
+        });
+    }
+}
+
+function handleProblem(editor: vscode.TextEditor, problem: vscode.Diagnostic) {
+    const problemRange = problem.range;
+    const problemText = editor.document.getText(problemRange);
+    const errorMessage = problem.message;
+
+    const prompt = `Fix the following code problem:\n\nError: ${errorMessage}\n\nCode:\n${problemText}\n\nPlease provide a corrected version of the code.`;
+
+    if (aider) {
+        aider.sendCommand(prompt);
+        vscode.window.showInformationMessage("Fix request sent to Aider. Please wait for the response.");
+    } else {
+        vscode.window.showErrorMessage("Aider is not available. Please make sure it's running.");
+    }
+}
+
 export function deactivate() {}
+async function showAiderMenu() {
+    const items: vscode.QuickPickItem[] = [
+        {
+            label: aider && aider.isActive() ? 'Close Aider' : 'Open Aider',
+            description: aider && aider.isActive() ? 'Close the current Aider session' : 'Start a new Aider session'
+        },
+        {
+            label: 'Select Model',
+            description: 'Change the AI model used by Aider'
+        },
+        {
+            label: 'Sync Files',
+            description: 'Synchronize open files with Aider'
+        }
+    ];
+
+    const selection = await vscode.window.showQuickPick(items, {
+        placeHolder: 'Select an Aider action'
+    });
+
+    if (selection) {
+        switch (selection.label) {
+            case 'Open Aider':
+                vscode.commands.executeCommand('aider.open');
+                break;
+            case 'Close Aider':
+                vscode.commands.executeCommand('aider.close');
+                break;
+            case 'Select Model':
+                vscode.commands.executeCommand('aider.selectModel');
+                break;
+            case 'Sync Files':
+                vscode.commands.executeCommand('aider.syncFiles');
+                break;
+        }
+    }
+}

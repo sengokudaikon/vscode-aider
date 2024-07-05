@@ -13,6 +13,8 @@ export interface AiderInterface {
     sendCommand(command: string, paths?: string[]) : void;    
     show(): void;
     isActive(): boolean;
+    onResponse(handler: (response: string) => void): void;
+    offResponse(handler: (response: string) => void): void;
 }
 
 export class AiderTerminal implements AiderInterface {
@@ -20,6 +22,7 @@ export class AiderTerminal implements AiderInterface {
     _workingDirectory: string = '';
     _onDidCloseTerminal: () => void;
     _isActive: boolean = true;
+    private responseHandlers: ((response: string) => void)[] = [];
 
     constructor(openaiAPIKey: string | null | undefined, anthropicAPIKey: string | null | undefined, aiderCommand: string, onDidCloseTerminal: () => void, workingDirectory: string, modelOption: string) {
         this._workingDirectory = workingDirectory;
@@ -130,8 +133,21 @@ export class AiderTerminal implements AiderInterface {
         this._terminal.show();
     }
 
+    onResponse(handler: (response: string) => void): void {
+        this.responseHandlers.push(handler);
+    }
+
+    offResponse(handler: (response: string) => void): void {
+        this.responseHandlers = this.responseHandlers.filter(h => h !== handler);
+    }
+
     private formatCommand(command: string): string {
         return `${command}${os.EOL}`;
+    }
+
+    // You'll need to implement a method to capture terminal output and call the response handlers
+    private handleTerminalOutput(output: string): void {
+        this.responseHandlers.forEach(handler => handler(output));
     }
 }
 

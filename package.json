@@ -83,8 +83,36 @@
             {
                 "command": "aider.generateReadme",
                 "title": "Aider: Generate README.md"
+            },
+            {
+                "command": "aider.refactorSnippet",
+                "title": "Aider: Refactor Selected Code"
+            },
+            {
+                "command": "aider.fixProblem",
+                "title": "Aider: Fix Problem"
+            },
+            {
+                "command": "aider.openMenu",
+                "title": "Aider: Open Menu"
             }
-        ]
+        ],
+        "menus": {
+            "editor/context": [
+                {
+                    "when": "editorHasSelection",
+                    "command": "aider.refactorSnippet",
+                    "group": "1_modification"
+                }
+            ],
+            "problems/item/context": [
+                {
+                    "command": "aider.fixProblem",
+                    "group": "1_modification",
+                    "when": "problemFocus"
+                }
+            ]
+        }
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",
