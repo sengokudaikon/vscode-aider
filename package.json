@@ -123,13 +123,6 @@
                     "command": "aider.modifySnippet",
                     "group": "aider@2"
                 }
-            ],
-            "problems/item/context": [
-                {
-                    "command": "aider.fixProblem",
-                    "group": "1_modification",
-                    "when": "problemFocus"
-                }
             ]
         },
         "submenus": [

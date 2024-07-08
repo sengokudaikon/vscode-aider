@@ -458,9 +458,6 @@ export function activate(context: vscode.ExtensionContext) {
     disposable = vscode.commands.registerCommand('aider.modifySnippet', () => handleSelectedCode('Modify'));
     context.subscriptions.push(disposable);
 
-    disposable = vscode.commands.registerCommand('aider.fixProblem', fixProblemWithAider);
-    context.subscriptions.push(disposable);
-
     // API key management functionality removed
 
 async function generateReadmeWithAider(workspaceRoot: string): Promise<string> {
@@ -589,49 +586,6 @@ async function handleSelectedCode(action: 'Refactor' | 'Modify') {
 
     aider.sendCommand(prompt.replace(/\r?\n|\r/g, ' ').trim());
     vscode.window.showInformationMessage(`${action} request sent to Aider. Please wait for the response.`);
-}
-
-function fixProblemWithAider(problem?: vscode.Diagnostic) {
-    if (!aider) {
-        vscode.window.showErrorMessage("Aider is not running. Please run the 'Open Aider' command first.");
-        return;
-    }
-
-    const activeEditor = vscode.window.activeTextEditor;
-    if (!activeEditor) {
-        vscode.window.showErrorMessage("No active text editor.");
-        return;
-    }
-
-    if (problem) {
-        // If a specific problem is provided (from the inline menu)
-        handleProblem(activeEditor, problem);
-    } else {
-        // If no specific problem is provided (from the context menu)
-        vscode.commands.executeCommand('problems.action.showCurrentAsProblem').then(() => {
-            const diagnostics = vscode.languages.getDiagnostics(activeEditor.document.uri);
-            if (diagnostics.length === 0) {
-                vscode.window.showInformationMessage("No problems found in the current file.");
-                return;
-            }
-            handleProblem(activeEditor, diagnostics[0]);
-        });
-    }
-}
-
-function handleProblem(editor: vscode.TextEditor, problem: vscode.Diagnostic) {
-    const problemRange = problem.range;
-    const problemText = editor.document.getText(problemRange);
-    const errorMessage = problem.message;
-
-    const prompt = `Fix the following code problem:\n\nError: ${errorMessage}\n\nCode:\n${problemText}\n\nPlease provide a corrected version of the code.`;
-
-    if (aider) {
-        aider.sendCommand(prompt);
-        vscode.window.showInformationMessage("Fix request sent to Aider. Please wait for the response.");
-    } else {
-        vscode.window.showErrorMessage("Aider is not available. Please make sure it's running.");
-    }
 }
 
 async function setCustomStartupArgs() {
