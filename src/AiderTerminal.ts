@@ -4,15 +4,15 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 export interface AiderInterface {
-    addFile(filePath: string) : void;
-    addFiles(filePaths: string[]) : void;
-    dispose() : void;
-    dropFile(filePath: string) : void;
-    dropFiles(filePaths: string[]) : void;
-    isWorkspaceFile(filePath: string) : boolean;
-    sendCommand(command: string, paths?: string[]) : void;    
-    show(): void;
+    addFile(filePath: string): void;
+    addFiles(filePaths: string[]): void;
+    dropFile(filePath: string): void;
+    dropFiles(filePaths: string[]): void;
+    sendCommand(command: string, paths?: string[]): void;
+    isWorkspaceFile(filePath: string): boolean;
     isActive(): boolean;
+    show(): void;
+    dispose(): void;
     onResponse(handler: (response: string) => void): void;
     offResponse(handler: (response: string) => void): void;
 }
