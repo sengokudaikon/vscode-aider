@@ -453,7 +453,10 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(disposable);
 
     // Register the refactor command
-    disposable = vscode.commands.registerCommand('aider.refactorSnippet', refactorSelectedCode);
+    disposable = vscode.commands.registerCommand('aider.refactorSnippet', () => handleSelectedCode('Refactor'));
+    context.subscriptions.push(disposable);
+
+    disposable = vscode.commands.registerCommand('aider.modifySnippet', () => handleSelectedCode('Modify'));
     context.subscriptions.push(disposable);
 
     disposable = vscode.commands.registerCommand('aider.fixProblem', fixProblemWithAider);
@@ -544,7 +547,7 @@ class RefactorCodeActionProvider implements vscode.CodeActionProvider {
     }
 }
 
-async function refactorSelectedCode() {
+async function handleSelectedCode(action: 'Refactor' | 'Modify') {
     if (!aider) {
         vscode.window.showErrorMessage("Aider is not running. Please run the 'Open Aider' command first.");
         return;
@@ -564,26 +567,12 @@ async function refactorSelectedCode() {
         return;
     }
 
-    const action = await vscode.window.showQuickPick(['Refactor', 'Modify'], {
-        placeHolder: 'Choose an action for the selected code'
+    const task = await vscode.window.showInputBox({
+        prompt: `Enter the ${action.toLowerCase()} task or instruction`,
+        placeHolder: action === 'Refactor' 
+            ? "e.g., Optimize for performance, Convert to async/await, etc."
+            : "e.g., Add error handling, Implement a new feature, etc."
     });
-
-    if (!action) {
-        return; // User cancelled the selection
-    }
-
-    let task: string | undefined;
-    if (action === 'Refactor') {
-        task = await vscode.window.showInputBox({
-            prompt: "Enter the refactoring task or instruction",
-            placeHolder: "e.g., Optimize for performance, Convert to async/await, etc."
-        });
-    } else {
-        task = await vscode.window.showInputBox({
-            prompt: "Enter the modification task or instruction",
-            placeHolder: "e.g., Add error handling, Implement a new feature, etc."
-        });
-    }
 
     if (task === undefined) {
         return; // User cancelled the input
