@@ -452,7 +452,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(disposable);
 
-    // Register the refactor command
+    // Register the refactor and modify commands
     disposable = vscode.commands.registerCommand('aider.refactorSnippet', () => handleSelectedCode('Refactor'));
     context.subscriptions.push(disposable);
 
@@ -567,24 +567,28 @@ async function handleSelectedCode(action: 'Refactor' | 'Modify') {
         return;
     }
 
-    const task = await vscode.window.showInputBox({
-        prompt: `Enter the ${action.toLowerCase()} task or instruction`,
-        placeHolder: action === 'Refactor' 
-            ? "e.g., Optimize for performance, Convert to async/await, etc."
-            : "e.g., Add error handling, Implement a new feature, etc."
-    });
-
-    if (task === undefined) {
-        return; // User cancelled the input
-    }
-
+    let task: string;
     if (action === 'Refactor') {
-        refactorCodeSnippet(aider, text, task);
-        vscode.window.showInformationMessage("Refactor request sent to Aider. Please wait for the response.");
+        task = "Refactor the following code to improve its structure and readability without changing its functionality:";
     } else {
-        modifyCodeSnippet(aider, text, task);
-        vscode.window.showInformationMessage("Modify request sent to Aider. Please wait for the response.");
+        task = await vscode.window.showInputBox({
+            prompt: "Enter the modification task or instruction",
+            placeHolder: "e.g., Add error handling, Implement a new feature, etc."
+        }) || "";
     }
+
+    if (task === "") {
+        return; // User cancelled the input for Modify action
+    }
+
+    const filePath = editor.document.uri.fsPath;
+    const relativePath = vscode.workspace.asRelativePath(filePath);
+    const lineNumber = selection.start.line + 1;
+
+    const prompt = `${task}\n\nFile: ${relativePath}\nLine: ${lineNumber}\n\n${text}`;
+
+    aider.sendCommand(prompt);
+    vscode.window.showInformationMessage(`${action} request sent to Aider. Please wait for the response.`);
 }
 
 function fixProblemWithAider(problem?: vscode.Diagnostic) {
