@@ -587,7 +587,7 @@ async function handleSelectedCode(action: 'Refactor' | 'Modify') {
     const sanitizedText = text.replace(/\r?\n/g, '\\n');
     const prompt = `${task}\n\nFile: ${relativePath}\nLine: ${lineNumber}\n\n${sanitizedText}`;
 
-    aider.sendCommand(prompt);
+    aider.sendCommand(prompt.replace(/\r?\n|\r/g, ' ').trim());
     vscode.window.showInformationMessage(`${action} request sent to Aider. Please wait for the response.`);
 }
 

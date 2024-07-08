@@ -92,12 +92,7 @@ export class AiderTerminal implements AiderInterface {
         } else {
             fullCommand = command;
         }
-        // Replace any newline characters with spaces to prevent premature execution
-        fullCommand = fullCommand.replace(/\r?\n|\r/g, ' ');
-        // Trim any leading or trailing whitespace
-        fullCommand = fullCommand.trim();
-        // Send the command without adding a newline character
-        this._terminal.sendText(fullCommand, false);
+        this._terminal.sendText(this.formatCommand(fullCommand));
     }
 
     addFile(filePath: string): void {
