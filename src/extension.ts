@@ -3,7 +3,7 @@ import { AiderInterface, AiderTerminal } from './AiderTerminal';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { refactorCodeSnippet } from './refactor';
+import { refactorCodeSnippet, modifyCodeSnippet } from './refactor';
 
 let customStartupArgs: string = '';
 
