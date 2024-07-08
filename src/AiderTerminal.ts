@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as os from 'os';
 import * as path from 'path';
-import { convertToRelativePath } from './extension';
+import * as fs from 'fs';
 
 export interface AiderInterface {
     addFile(filePath: string) : void;
@@ -20,12 +20,14 @@ export interface AiderInterface {
 export class AiderTerminal implements AiderInterface {
     _terminal: vscode.Terminal;
     _workingDirectory: string = '';
+    _gitWorkingDirectory: string | null = null;
     _onDidCloseTerminal: () => void;
     _isActive: boolean = true;
     private responseHandlers: ((response: string) => void)[] = [];
 
     constructor(openaiAPIKey: string | null | undefined, anthropicAPIKey: string | null | undefined, aiderCommand: string, onDidCloseTerminal: () => void, workingDirectory: string) {
         this._workingDirectory = workingDirectory;
+        this._gitWorkingDirectory = this.findGitWorkingDirectory(workingDirectory);
 
         let opts: vscode.TerminalOptions = {
             'name': "Aider",
@@ -74,7 +76,8 @@ export class AiderTerminal implements AiderInterface {
     }
 
     private formatPath(filePath: string): string {
-        const relativePath = path.relative(this._workingDirectory, filePath);
+        const baseDir = this._gitWorkingDirectory || this._workingDirectory;
+        const relativePath = path.relative(baseDir, filePath);
         return relativePath.replace(/\\/g, '/');
     }
 
@@ -143,6 +146,18 @@ export class AiderTerminal implements AiderInterface {
 
     private formatCommand(command: string): string {
         return `${command}${os.EOL}`;
+    }
+
+    private findGitWorkingDirectory(startPath: string): string | null {
+        let currentPath = startPath;
+        while (currentPath !== path.parse(currentPath).root) {
+            const gitDir = path.join(currentPath, '.git');
+            if (fs.existsSync(gitDir) && fs.statSync(gitDir).isDirectory()) {
+                return currentPath;
+            }
+            currentPath = path.dirname(currentPath);
+        }
+        return null;
     }
 
     // You'll need to implement a method to capture terminal output and call the response handlers
