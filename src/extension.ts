@@ -5,6 +5,8 @@ import * as path from 'path';
 import * as os from 'os';
 import { refactorCodeSnippet } from './refactor';
 
+let customStartupArgs: string = '';
+
 export function convertToRelativePath(filePath: string, workingDirectory: string): string {
     if (path.isAbsolute(filePath)) {
         return path.relative(workingDirectory, filePath);
@@ -44,7 +46,15 @@ async function createAider() {
 
     findWorkingDirectory(workingDirectory).then((workingDirectory) => {
         calculatedWorkingDirectory = workingDirectory;
-        aider = new AiderTerminal(openaiApiKey, anthropicApiKey, aiderCommandLine, handleAiderClose, workingDirectory, selectedModel);
+        let fullCommand = `${aiderCommandLine}`;
+        if (selectedModel !== 'custom') {
+            fullCommand += ` ${selectedModel}`;
+        }
+        if (customStartupArgs) {
+            fullCommand += ` ${customStartupArgs}`;
+        }
+        fullCommand = fullCommand.trim();
+        aider = new AiderTerminal(openaiApiKey, anthropicApiKey, fullCommand, handleAiderClose, workingDirectory);
         
         if (aider) {
             // Collect all open files from both sources
@@ -198,7 +208,23 @@ vscode.workspace.onDidChangeConfiguration((e) => {
 });
 
 function updateStatusBar() {
-    const modelName = selectedModel === '--4o' ? 'GPT-4o' : selectedModel === '--sonnet' ? 'Claude 3.5 Sonnet' : 'Claude 3 Opus';
+    let modelName;
+    switch (selectedModel) {
+        case '--4o':
+            modelName = 'GPT-4o';
+            break;
+        case '--sonnet':
+            modelName = 'Claude 3.5 Sonnet';
+            break;
+        case '--opus':
+            modelName = 'Claude 3 Opus';
+            break;
+        case 'custom':
+            modelName = 'Custom';
+            break;
+        default:
+            modelName = 'Unknown';
+    }
     statusBarItem.text = `🤖 Aider: ${modelName}`;
     statusBarItem.command = 'aider.openMenu';
     statusBarItem.tooltip = 'Click to open Aider management menu';
@@ -217,7 +243,8 @@ export function activate(context: vscode.ExtensionContext) {
         const models = [
             { label: '$(sparkle) Claude 3.5 Sonnet (Default)', value: '--sonnet', description: selectedModel === '--sonnet' ? '(Current)' : '' },
             { label: '$(star) Claude 3 Opus', value: '--opus', description: selectedModel === '--opus' ? '(Current)' : '' },
-            { label: '$(robot) GPT-4o', value: '--4o', description: selectedModel === '--4o' ? '(Current)' : '' }
+            { label: '$(robot) GPT-4o', value: '--4o', description: selectedModel === '--4o' ? '(Current)' : '' },
+            { label: '$(gear) Custom (startup argument)', value: 'custom', description: selectedModel === 'custom' ? '(Current)' : '' }
         ];
         const selectedModelOption = await vscode.window.showQuickPick(models, {
             placeHolder: 'Select a model for Aider',
@@ -231,16 +258,23 @@ export function activate(context: vscode.ExtensionContext) {
                 filesThatAiderKnows.clear();
             }
 
-            selectedModel = selectedModelOption.value;
-            updateStatusBar();
-            vscode.window.showInformationMessage(`Aider model set to: ${selectedModelOption.label.replace(/\$\([^)]+\)\s/, '')}. Reopening Aider with the new model.`);
+            if (selectedModelOption.value === 'custom') {
+                selectedModel = 'custom';
+                updateStatusBar();
+                vscode.window.showInformationMessage(`Aider model set to: Custom. The model specified in custom startup arguments will be used.`);
+            } else {
+                selectedModel = selectedModelOption.value;
+                updateStatusBar();
+                vscode.window.showInformationMessage(`Aider model set to: ${selectedModelOption.label.replace(/\$\([^)]+\)\s/, '')}.`);
+            }
             
-            // Reopen Aider with the new model
+            // Automatically reopen Aider with the new model
             createAider().then(() => {
                 if (aider) {
                     aider.show();
                     // Force the terminal to appear
                     vscode.commands.executeCommand('workbench.action.terminal.focus');
+                    vscode.window.showInformationMessage(`Reopen Aider to use the new model.`);
                 }
             }).catch((error) => {
                 vscode.window.showErrorMessage(`Failed to reopen Aider: ${error}`);
@@ -577,6 +611,19 @@ function handleProblem(editor: vscode.TextEditor, problem: vscode.Diagnostic) {
     }
 }
 
+async function setCustomStartupArgs() {
+    const args = await vscode.window.showInputBox({
+        prompt: 'Enter custom startup arguments for Aider',
+        placeHolder: 'e.g. --no-auto-commits --dark-mode',
+        value: customStartupArgs
+    });
+
+    if (args !== undefined) {
+        customStartupArgs = args;
+        vscode.window.showInformationMessage(`Custom startup arguments set to: ${customStartupArgs}`);
+    }
+}
+
 export function deactivate() {}
 async function showAiderMenu() {
     const items: vscode.QuickPickItem[] = [
@@ -591,6 +638,10 @@ async function showAiderMenu() {
         {
             label: 'Sync Files',
             description: 'Synchronize open files with Aider'
+        },
+        {
+            label: 'Set Custom Startup Arguments',
+            description: 'Set custom arguments for Aider startup'
         }
     ];
 
@@ -611,6 +662,9 @@ async function showAiderMenu() {
                 break;
             case 'Sync Files':
                 vscode.commands.executeCommand('aider.syncFiles');
+                break;
+            case 'Set Custom Startup Arguments':
+                setCustomStartupArgs();
                 break;
         }
     }

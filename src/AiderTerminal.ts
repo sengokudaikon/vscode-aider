@@ -24,7 +24,7 @@ export class AiderTerminal implements AiderInterface {
     _isActive: boolean = true;
     private responseHandlers: ((response: string) => void)[] = [];
 
-    constructor(openaiAPIKey: string | null | undefined, anthropicAPIKey: string | null | undefined, aiderCommand: string, onDidCloseTerminal: () => void, workingDirectory: string, modelOption: string) {
+    constructor(openaiAPIKey: string | null | undefined, anthropicAPIKey: string | null | undefined, aiderCommand: string, onDidCloseTerminal: () => void, workingDirectory: string) {
         this._workingDirectory = workingDirectory;
 
         let opts: vscode.TerminalOptions = {
@@ -62,7 +62,7 @@ export class AiderTerminal implements AiderInterface {
         });
 
         this._terminal.show();
-        this._terminal.sendText(`${aiderCommand} ${modelOption}`);
+        this._terminal.sendText(aiderCommand);
     }
 
     private getRelativeDirectory(filePath: string) {
