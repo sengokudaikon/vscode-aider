@@ -560,21 +560,42 @@ async function refactorSelectedCode() {
     const text = editor.document.getText(selection);
 
     if (!text) {
-        vscode.window.showErrorMessage("No text selected. Please select a code snippet to refactor.");
+        vscode.window.showErrorMessage("No text selected. Please select a code snippet to refactor or modify.");
         return;
     }
 
-    const task = await vscode.window.showInputBox({
-        prompt: "Enter the refactoring task or instruction",
-        placeHolder: "e.g., Optimize for performance, Convert to async/await, etc."
+    const action = await vscode.window.showQuickPick(['Refactor', 'Modify'], {
+        placeHolder: 'Choose an action for the selected code'
     });
+
+    if (!action) {
+        return; // User cancelled the selection
+    }
+
+    let task: string | undefined;
+    if (action === 'Refactor') {
+        task = await vscode.window.showInputBox({
+            prompt: "Enter the refactoring task or instruction",
+            placeHolder: "e.g., Optimize for performance, Convert to async/await, etc."
+        });
+    } else {
+        task = await vscode.window.showInputBox({
+            prompt: "Enter the modification task or instruction",
+            placeHolder: "e.g., Add error handling, Implement a new feature, etc."
+        });
+    }
 
     if (task === undefined) {
         return; // User cancelled the input
     }
 
-    refactorCodeSnippet(aider, text, task);
-    vscode.window.showInformationMessage("Refactor request sent to Aider. Please wait for the response.");
+    if (action === 'Refactor') {
+        refactorCodeSnippet(aider, text, task);
+        vscode.window.showInformationMessage("Refactor request sent to Aider. Please wait for the response.");
+    } else {
+        modifyCodeSnippet(aider, text, task);
+        vscode.window.showInformationMessage("Modify request sent to Aider. Please wait for the response.");
+    }
 }
 
 function fixProblemWithAider(problem?: vscode.Diagnostic) {
