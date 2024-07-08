@@ -99,6 +99,10 @@
                 "title": "Aider: Refactor Selected Code"
             },
             {
+                "command": "aider.modifySnippet",
+                "title": "Aider: Modify Selected Code"
+            },
+            {
                 "command": "aider.fixProblem",
                 "title": "Aider: Fix Problem"
             },
