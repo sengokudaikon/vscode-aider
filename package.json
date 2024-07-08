@@ -18,6 +18,16 @@
     "activationEvents": [],
     "main": "./out/extension.js",
     "contributes": {
+        "commands": [
+            {
+                "command": "aider.refactorSnippet",
+                "title": "Refactor with Aider"
+            },
+            {
+                "command": "aider.modifySnippet",
+                "title": "Modify with Aider"
+            }
+        ],
         "configuration": {
             "title": "Aider",
             "properties": {
@@ -100,9 +110,18 @@
         "menus": {
             "editor/context": [
                 {
-                    "when": "editorHasSelection",
+                    "submenu": "aider.contextMenu",
+                    "group": "aider"
+                }
+            ],
+            "aider.contextMenu": [
+                {
                     "command": "aider.refactorSnippet",
-                    "group": "1_modification"
+                    "group": "aider@1"
+                },
+                {
+                    "command": "aider.modifySnippet",
+                    "group": "aider@2"
                 }
             ],
             "problems/item/context": [
@@ -112,7 +131,13 @@
                     "when": "problemFocus"
                 }
             ]
-        }
+        },
+        "submenus": [
+            {
+                "id": "aider.contextMenu",
+                "label": "Aider"
+            }
+        ]
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",
