@@ -103,10 +103,6 @@
                 "title": "Aider: Modify Selected Code"
             },
             {
-                "command": "aider.fixProblem",
-                "title": "Aider: Fix Problem"
-            },
-            {
                 "command": "aider.openMenu",
                 "title": "Aider: Open Menu"
             }
