@@ -544,7 +544,7 @@ class RefactorCodeActionProvider implements vscode.CodeActionProvider {
     }
 }
 
-function refactorSelectedCode() {
+async function refactorSelectedCode() {
     if (!aider) {
         vscode.window.showErrorMessage("Aider is not running. Please run the 'Open Aider' command first.");
         return;
@@ -564,7 +564,16 @@ function refactorSelectedCode() {
         return;
     }
 
-    refactorCodeSnippet(aider, text);
+    const task = await vscode.window.showInputBox({
+        prompt: "Enter the refactoring task or instruction",
+        placeHolder: "e.g., Optimize for performance, Convert to async/await, etc."
+    });
+
+    if (task === undefined) {
+        return; // User cancelled the input
+    }
+
+    refactorCodeSnippet(aider, text, task);
     vscode.window.showInformationMessage("Refactor request sent to Aider. Please wait for the response.");
 }
 
