@@ -565,7 +565,7 @@ async function handleSelectedCode(action: 'Refactor' | 'Modify') {
 
     let task: string;
     if (action === 'Refactor') {
-        task = "Refactor the following code to improve its structure and readability without changing its functionality:";
+        task = "Refactor the following code to improve its structure, performance and readability without changing its functionality:";
     } else {
         task = await vscode.window.showInputBox({
             prompt: "Enter the modification task or instruction",
