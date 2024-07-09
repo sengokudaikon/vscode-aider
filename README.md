@@ -1,66 +1,71 @@
-# VSCode-Aider-Extension
+# VSCode Aider Extension
 
-![Example](https://raw.githubusercontent.com/mattflower/vscode-aider-extension/master/media/Example.png)
+![Aider Extension](https://raw.githubusercontent.com/mattflower/vscode-aider-extension/master/images/AiderExtension.png)
 
 ## Introduction
 
-Aider's website describes the tool best:
+The VSCode Aider Extension integrates [Aider](https://aider.chat), a powerful AI-assisted coding tool, directly into Visual Studio Code. This extension enhances your coding experience by providing seamless access to AI-powered code refactoring, modification, and generation capabilities.
 
-> [Aider](https://aider.chat) is a command line tool that allows you to pair program with GPT-3.5/GPT 4.0.  You can start a new project or work with an existing repo.  Aider makes sure edits from GPT are [committed to git](https://aider.chat/docs/faq.html#how-does-aider-use-git) with sensible commit messages.  Aider is unique in that it lets you ask for changes to [pre-existing, larger codebases](https://aider.chat/docs/repomap.html).
+## Features
 
-As a frequent user of Aider, I was looking for a way to accomplish three goals:
+- **AI-Powered Coding Assistance**: Leverage the power of AI models like GPT-4 and Claude to assist with your coding tasks.
+- **Automatic File Synchronization**: The extension automatically keeps track of open files and syncs them with Aider.
+- **Multiple AI Model Support**: Choose between different AI models, including GPT-4 and Claude variants.
+- **Code Refactoring**: Easily refactor selected code snippets using AI suggestions.
+- **Code Modification**: Get AI assistance in modifying your code based on specific instructions.
+- **README Generation**: Automatically generate comprehensive README files for your projects.
+- **Custom Startup Arguments**: Customize Aider's behavior with user-defined startup arguments.
 
-1. With the aider tool, you have to tell it what files it should be considering in your current chat session.  Much like the [wonderful plugin for NeoVIM](https://github.com/joshuavial/aider.nvim), I found it a mild chore to keep running `/add filename` and `/drop filename` and thought maybe I could make an extension that automates away those chores.
-2. Aider (like all ChatGPT tools) requires you to supply your OPENAI_API_KEY prior to calling API endpoints.  Aider needs this as well.  I wanted to be able to set this automatically.
-3. I wanted the tool to feel naturally like part of VSCode.
+## Requirements
 
-## What Works, What Still Needs Some Iteration
+- Visual Studio Code version 1.50.0 or higher
+- Aider CLI tool installed (visit [Aider's website](https://aider.chat) for installation instructions)
+- An OpenAI API key or Anthropic API key (depending on the model you choose)
 
-I'm really new at writing VSCode plugins.  Given that I like Aider, it might not surprise you that I ran:
+## Installation
 
-> Write a VSCode extension for running aider.  The extension should keep track of open files, it should run \add and \drop to keep the commands inside of the tool synchronized with the open file list inside of VSCode.
+1. Install the Aider Extension from the Visual Studio Code Marketplace.
+2. Ensure you have the Aider CLI tool installed on your system.
+3. Configure your API keys in the extension settings.
 
-This command created about 70% of version 0.0.1 of this plugin.  Alas, there are some things are not quite right yet.  
+## Configuration
 
-1. This plugin doesn't work correctly if you run Microsoft Windows.  While you can open an Aider terminal successfully, when you open or close a file, Aider doesn't recognize carriage returns in the commands you send to it.  If tried "\r\n", "\n", and String.fromCharCode() but to no avail.  
-2. When the plugin first opens, it should be automatically adding open files to Aider.  For whatever reason, the command I'm using `vscode.workspace.textDocuments` doesn't seem to return all the tabs I have open all of the time.  I've also tried `vscode.window.visibleTextEditors`, it also refused to return all the open tabs all of the time.  This mostly seems to happen when I've first starting up VSCode and it's using previously saved tabs.  
-3. The Python plugin has a default setting that always activates the current python environment for every new terminal.  This includes the terminal I create for aider.  I wouldn't mind, except it pollutes the output of aider.  The only solution I have so far is to turn off the property "Terminal: Activate Environment" in the Python settings.  Keep in mind, you'll need to source your VENVs yourself if you turn this off.
-4. Aider won't enter "Pretty Mode" in the VSCode Terminal.  Consequently, output isn't colored.  I don't have context on why that doesn't work, but I know that it won't even obey the --pretty command line option at this point.
+To set up the Aider Extension:
 
-## What Works
+1. Open VS Code settings (File > Preferences > Settings).
+2. Search for "Aider" in the settings search bar.
+3. Configure the following settings:
+   - `aider.openaiApiKey`: Your OpenAI API key (if using OpenAI models)
+   - `aider.anthropicApiKey`: Your Anthropic API key (if using Claude models)
+   - `aider.commandLine`: The command to run Aider (e.g., `aider` or full path if needed)
+   - `aider.workingDirectory`: Set a specific working directory for Aider (optional)
+   - `aider.ignoreFiles`: List of file patterns to ignore (optional)
 
-1. Opening or closing tabs seems /add and /drop files correctly.
-2. I haven't had any problem using aider to make further modifications to the code.
-3. Configuration options seem to work, though I haven't really used the "ignore files" one very much.
+## Usage
 
-## Setting up the plugin
+1. **Start Aider**: Use the command palette (Ctrl+Shift+P) and search for "Aider: Open" to start an Aider session.
+2. **Select AI Model**: Choose your preferred AI model using the "Aider: Select Model" command.
+3. **Refactor Code**: Select a code snippet and use the "Aider: Refactor Selected Code" command.
+4. **Modify Code**: Select code and use "Aider: Modify Selected Code" to get AI suggestions for modifications.
+5. **Generate README**: Use the "Aider: Generate README.md" command to create a project README.
+6. **Sync Files**: Manually sync open files with Aider using the "Aider: Sync Open Files" command.
 
-First and foremost, you need to have aider installed.  If you don't have this done already, head over to the [Aider website](https://aider.chat) to get it installed.
+## Known Issues
 
-After that's done, I would suggest doing three things:
+- Windows compatibility is still being improved. Some features may not work as expected on Windows systems.
+- The extension may not always detect all open files on VSCode startup.
 
-1. Open the Aider settings and set OPENAI_API_KEY.
-2. If you have trouble running Aider because it can't find the aider executable, you may need to set the full path to the executable in the "Command Line" setting for Aider.  For example, you may need to set it to something like `/opt/homebrew/bin/aider`.
-3. If you want to use GPT 4.5 Turbo, you'll probably have to update the command line further, to something like `aider --model gpt-4-1106-preview`
+## Contributing
 
-If you have any trouble whatsoever with setting the working directory for aider, I encourage you to set the "working directory" setting.  This will prevent the plugin from trying to figure out the working directory by itself.
+Contributions to the Aider Extension are welcome! Please submit issues and pull requests on the [GitHub repository](https://github.com/MattFlower/vscode-aider-extension).
 
-## Using the plugin
+## License
 
-Run the "Aider Open" command from your Command Palette to start the plugin.  This should always be the first step, as no other commands will work until it's open.
+This extension is released under the [MIT License](LICENSE.md).
 
-Aider relies on the user to specify the files that will need to change in order to accomplish the commands you give it.  If you've used aider before, you'll be familiar with running `/add filename` and `/drop filename` to accomplish this.  When using this plugin, whatever files you have open in your editor will automatically be in the aider chat. 
+## Acknowledgements
 
-If you're ready to have Aider make some changes to your site, go to Aider terminal window and do some pair programming with Aider.  If you are new to Aider, I recommend checking out the Aider web site's [examples](https://aider.chat/examples/) page.  
+- Aider CLI tool created by [Paul Gauthier](https://github.com/paul-gauthier)
+- VSCode Aider Extension developed by [Matt Flower](https://github.com/mattflower)
 
-## Who Wrote Aider?
-
-The aider tool was written by [Paul Gauthier](https://github.com/paul-gauthier).  I am not a contributor on that project, but after using it extensively, I ([Matt Flower](https://github.com/mattflower)) decided to write the Aider plugin for VSCode.
-
-## Reporting Bugs
-
-Please report any bugs to the [issues page](https://github.com/MattFlower/vscode-aider-extension/issues) on the GitHub site for this extension.
-
-## Pull Requests and the Future of this Plugin
-
-I'm enjoying writing this plugin, and I'm enjoying using it.  If you think you know the answer to any of the problems listed above (or other ones I haven't noticed yet!) I'm definitely open to Pull Requests.
+For more information on using Aider, visit the [Aider documentation](https://aider.chat/docs/).
