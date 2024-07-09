@@ -1,10 +1,10 @@
 {
-    "name": "aider",
-    "displayName": "Aider",
+    "name": "vscode-aider",
+    "displayName": "VSCode Aider",
     "description": "Extension for running Aider inside VSCode",
     "icon": "images/logo.png",
     "version": "1.0.0",
-    "publisher": "Apertia Tech",
+    "publisher": "Apertia",
     "repository": {
         "type": "git",
         "url": "https://gitlab.apertia.cz/filip.koch/vscode-aider"
