@@ -1,7 +1,5 @@
 # VSCode Aider Extension
 
-![Aider Extension](https://raw.githubusercontent.com/mattflower/vscode-aider-extension/master/images/AiderExtension.png)
-
 ## Introduction
 
 The VSCode Aider Extension integrates [Aider](https://aider.chat), a powerful AI-assisted coding tool, directly into Visual Studio Code. This extension enhances your coding experience by providing seamless access to AI-powered code refactoring, modification, and generation capabilities.
@@ -28,44 +26,20 @@ The VSCode Aider Extension integrates [Aider](https://aider.chat), a powerful AI
 2. Ensure you have the Aider CLI tool installed on your system.
 3. Configure your API keys in the extension settings.
 
-## Configuration
-
-To set up the Aider Extension:
-
-1. Open VS Code settings (File > Preferences > Settings).
-2. Search for "Aider" in the settings search bar.
-3. Configure the following settings:
-   - `aider.openaiApiKey`: Your OpenAI API key (if using OpenAI models)
-   - `aider.anthropicApiKey`: Your Anthropic API key (if using Claude models)
-   - `aider.commandLine`: The command to run Aider (e.g., `aider` or full path if needed)
-   - `aider.workingDirectory`: Set a specific working directory for Aider (optional)
-   - `aider.ignoreFiles`: List of file patterns to ignore (optional)
-
 ## Usage
 
 1. **Start Aider**: Use the command palette (Ctrl+Shift+P) and search for "Aider: Open" to start an Aider session.
 2. **Select AI Model**: Choose your preferred AI model using the "Aider: Select Model" command.
-3. **Refactor Code**: Select a code snippet and use the "Aider: Refactor Selected Code" command.
-4. **Modify Code**: Select code and use "Aider: Modify Selected Code" to get AI suggestions for modifications.
-5. **Generate README**: Use the "Aider: Generate README.md" command to create a project README.
-6. **Sync Files**: Manually sync open files with Aider using the "Aider: Sync Open Files" command.
+3. **Open Menu**: Menu for custom arguments, model selection, etc.
 
 ## Known Issues
 
 - Windows compatibility is still being improved. Some features may not work as expected on Windows systems.
 - The extension may not always detect all open files on VSCode startup.
 
-## Contributing
-
-Contributions to the Aider Extension are welcome! Please submit issues and pull requests on the [GitHub repository](https://github.com/MattFlower/vscode-aider-extension).
-
-## License
-
-This extension is released under the [MIT License](LICENSE.md).
-
 ## Acknowledgements
 
 - Aider CLI tool created by [Paul Gauthier](https://github.com/paul-gauthier)
-- VSCode Aider Extension developed by [Matt Flower](https://github.com/mattflower)
+- This extension is a fork of [Matt Flower](https://github.com/mattflower)'s extension
 
 For more information on using Aider, visit the [Aider documentation](https://aider.chat/docs/).
