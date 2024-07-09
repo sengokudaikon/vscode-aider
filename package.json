@@ -2,7 +2,7 @@
     "name": "aider",
     "displayName": "Aider",
     "description": "Extension for running Aider inside VSCode",
-    "icon": "images/AiderExtension.png",
+    "icon": "images/logo.png",
     "version": "1.0.0",
     "publisher": "Apertia Tech",
     "repository": {
