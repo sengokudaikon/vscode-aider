@@ -1,13 +1,13 @@
 {
-    "name": "aider-mod",
-    "displayName": "Aider (Mod)",
-    "description": "VSCode extension for running Aider",
+    "name": "aider",
+    "displayName": "Aider",
+    "description": "Extension for running Aider inside VSCode",
     "icon": "images/AiderExtension.png",
-    "version": "0.0.9",
-    "publisher": "MattFlower",
+    "version": "1.0.0",
+    "publisher": "Apertia Tech",
     "repository": {
         "type": "git",
-        "url": "https://github.com/MattFlower/vscode-aider-extension"
+        "url": "https://gitlab.apertia.cz/filip.koch/vscode-aider"
     },
     "engines": {
         "vscode": "^1.50.0"
