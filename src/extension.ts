@@ -485,16 +485,50 @@ async function generateReadmeWithAider(workspaceRoot: string): Promise<string> {
             return;
         }
 
-        const prompt = `Generate a comprehensive README.md file for the project in the current workspace. Include sections for introduction, features, installation, usage, configuration, and any other relevant information based on the project files and structure.`;
+        const prompt = `Generate a comprehensive, user-friendly, and developer-friendly README.md file for the project in the current workspace. The README should be tailored to the specific needs and nature of the project. Include the following sections:
+
+1. Project Title and Description
+2. Features
+3. Prerequisites
+4. Installation
+5. Usage
+6. Configuration
+7. API Reference (if applicable)
+8. Contributing
+9. Testing
+10. Deployment (if applicable)
+11. Built With (technologies used)
+12. Versioning
+13. Authors
+14. License
+15. Acknowledgments
+
+For each section, provide detailed and relevant information based on the project files and structure. Ensure the content is clear, concise, and helpful for both users and developers. If any section is not applicable to this project, you may omit it.
+
+Additionally:
+- Use proper Markdown formatting for headers, lists, code blocks, etc.
+- Include badges where appropriate (e.g., build status, version, license)
+- If it's an open-source project, include information on how to contribute
+- Add a table of contents for easy navigation
+- Include examples and screenshots if possible
+
+Please generate the README content now.`;
 
         aider.sendCommand(prompt);
 
-        // We need to implement a way to capture Aider's response
-        // This is a placeholder and needs to be replaced with actual implementation
-        // that captures Aider's output and returns it as the README content
+        // Implement a way to capture Aider's response
+        let readmeContent = '';
+        const responseHandler = (response: string) => {
+            readmeContent += response;
+        };
+
+        aider.onResponse(responseHandler);
+
+        // Wait for Aider to complete the response
         setTimeout(() => {
-            resolve("");
-        }, 5000);
+            aider.offResponse(responseHandler);
+            resolve(readmeContent);
+        }, 30000); // Increased timeout to 30 seconds to allow for a more comprehensive response
     });
 }
 
