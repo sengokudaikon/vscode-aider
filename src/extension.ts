@@ -526,61 +526,9 @@ Please generate the README content now.`;
 
         // Wait for Aider to complete the response
         setTimeout(() => {
-            aider.offResponse(responseHandler);
-            resolve(readmeContent);
-        }, 30000); // Increased timeout to 30 seconds to allow for a more comprehensive response
-    });
-}
-
-async function generateReadmeWithAider(workspaceRoot: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-        if (!aider) {
-            reject(new Error("Aider is not running"));
-            return;
-        }
-
-        const prompt = `Generate a comprehensive, user-friendly, and developer-friendly README.md file for the project in the current workspace. The README should be tailored to the specific needs and nature of the project. Include the following sections:
-
-1. Project Title and Description
-2. Features
-3. Prerequisites
-4. Installation
-5. Usage
-6. Configuration
-7. API Reference (if applicable)
-8. Contributing
-9. Testing
-10. Deployment (if applicable)
-11. Built With (technologies used)
-12. Versioning
-13. Authors
-14. License
-15. Acknowledgments
-
-For each section, provide detailed and relevant information based on the project files and structure. Ensure the content is clear, concise, and helpful for both users and developers. If any section is not applicable to this project, you may omit it.
-
-Additionally:
-- Use proper Markdown formatting for headers, lists, code blocks, etc.
-- Include badges where appropriate (e.g., build status, version, license)
-- If it's an open-source project, include information on how to contribute
-- Add a table of contents for easy navigation
-- Include examples and screenshots if possible
-
-Please generate the README content now.`;
-
-        aider.sendCommand(prompt);
-
-        // Implement a way to capture Aider's response
-        let readmeContent = '';
-        const responseHandler = (response: string) => {
-            readmeContent += response;
-        };
-
-        aider.onResponse(responseHandler);
-
-        // Wait for Aider to complete the response
-        setTimeout(() => {
-            aider.offResponse(responseHandler);
+            if (aider) {
+                aider.offResponse(responseHandler);
+            }
             resolve(readmeContent);
         }, 30000); // Increased timeout to 30 seconds to allow for a more comprehensive response
     });
