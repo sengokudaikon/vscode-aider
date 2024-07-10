@@ -105,6 +105,10 @@
             {
                 "command": "aider.openMenu",
                 "title": "Aider: Open Menu"
+            },
+            {
+                "command": "aider.addFileToAider",
+                "title": "Add to Aider"
             }
         ],
         "menus": {
@@ -122,6 +126,13 @@
                 {
                     "command": "aider.modifySnippet",
                     "group": "aider@2"
+                }
+            ],
+            "explorer/context": [
+                {
+                    "command": "aider.addFileToAider",
+                    "group": "aider@1",
+                    "when": "resourceScheme == file"
                 }
             ]
         },
