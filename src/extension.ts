@@ -532,54 +532,58 @@ Please generate the README content now.`;
     });
 }
 
-async function generateReadmeContent(workspaceRoot: string): Promise<string> {
-    const packageJsonPath = path.join(workspaceRoot, 'package.json');
-    let packageJson;
-    try {
-        packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-    } catch (error) {
-        console.error('Error reading package.json:', error);
-        packageJson = {};
-    }
+async function generateReadmeWithAider(workspaceRoot: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+        if (!aider) {
+            reject(new Error("Aider is not running"));
+            return;
+        }
 
-    const projectName = packageJson.name || path.basename(workspaceRoot);
-    const description = packageJson.description || 'A VSCode extension project';
+        const prompt = `Generate a comprehensive, user-friendly, and developer-friendly README.md file for the project in the current workspace. The README should be tailored to the specific needs and nature of the project. Include the following sections:
 
-    let readmeContent = `# ${projectName}\n\n`;
-    readmeContent += `${description}\n\n`;
-    readmeContent += `## Features\n\n`;
-    readmeContent += `- List the main features of your extension here\n\n`;
-    readmeContent += `## Requirements\n\n`;
-    readmeContent += `- List any prerequisites or requirements here\n\n`;
-    readmeContent += `## Extension Settings\n\n`;
-    readmeContent += `This extension contributes the following settings:\n\n`;
-    readmeContent += `* \`myExtension.enable\`: Enable/disable this extension\n`;
-    readmeContent += `* \`myExtension.thing\`: Set to \`blah\` to do something\n\n`;
-    readmeContent += `## Known Issues\n\n`;
-    readmeContent += `Calling out known issues can help limit users opening duplicate issues against your extension.\n\n`;
-    readmeContent += `## Release Notes\n\n`;
-    readmeContent += `Users appreciate release notes as you update your extension.\n\n`;
-    readmeContent += `### 1.0.0\n\n`;
-    readmeContent += `Initial release of ...\n\n`;
-    readmeContent += `### 1.0.1\n\n`;
-    readmeContent += `Fixed issue #.\n\n`;
-    readmeContent += `### 1.1.0\n\n`;
-    readmeContent += `Added features X, Y, and Z.\n\n`;
-    readmeContent += `---\n\n`;
-    readmeContent += `## Following extension guidelines\n\n`;
-    readmeContent += `Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.\n\n`;
-    readmeContent += `* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)\n\n`;
-    readmeContent += `## Working with Markdown\n\n`;
-    readmeContent += `You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:\n\n`;
-    readmeContent += `* Split the editor (\`Cmd+\\\` on macOS or \`Ctrl+\\\` on Windows and Linux)\n`;
-    readmeContent += `* Toggle preview (\`Shift+Cmd+V\` on macOS or \`Shift+Ctrl+V\` on Windows and Linux)\n`;
-    readmeContent += `* Press \`Ctrl+Space\` (Windows, Linux, macOS) to see a list of Markdown snippets\n\n`;
-    readmeContent += `## For more information\n\n`;
-    readmeContent += `* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)\n`;
-    readmeContent += `* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)\n\n`;
-    readmeContent += `**Enjoy!**\n`;
+1. Project Title and Description
+2. Features
+3. Prerequisites
+4. Installation
+5. Usage
+6. Configuration
+7. API Reference (if applicable)
+8. Contributing
+9. Testing
+10. Deployment (if applicable)
+11. Built With (technologies used)
+12. Versioning
+13. Authors
+14. License
+15. Acknowledgments
 
-    return readmeContent;
+For each section, provide detailed and relevant information based on the project files and structure. Ensure the content is clear, concise, and helpful for both users and developers. If any section is not applicable to this project, you may omit it.
+
+Additionally:
+- Use proper Markdown formatting for headers, lists, code blocks, etc.
+- Include badges where appropriate (e.g., build status, version, license)
+- If it's an open-source project, include information on how to contribute
+- Add a table of contents for easy navigation
+- Include examples and screenshots if possible
+
+Please generate the README content now.`;
+
+        aider.sendCommand(prompt);
+
+        // Implement a way to capture Aider's response
+        let readmeContent = '';
+        const responseHandler = (response: string) => {
+            readmeContent += response;
+        };
+
+        aider.onResponse(responseHandler);
+
+        // Wait for Aider to complete the response
+        setTimeout(() => {
+            aider.offResponse(responseHandler);
+            resolve(readmeContent);
+        }, 30000); // Increased timeout to 30 seconds to allow for a more comprehensive response
+    });
 }
 }
 
