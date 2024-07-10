@@ -431,21 +431,11 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
-        const readmePath = path.join(workspaceRoot, 'README.md');
 
         try {
-            // Generate README content using Aider
-            const readmeContent = await generateReadmeWithAider(workspaceRoot);
-            
-            fs.writeFileSync(readmePath, readmeContent);
-            vscode.window.showInformationMessage('README.md has been generated successfully using Aider. Edit the file as needed to add more details like AUTHOR, LICENSE, CONTRIBUTING, etc. if needed');
-            
-            const openPath = vscode.Uri.file(readmePath);
-            vscode.workspace.openTextDocument(openPath).then(doc => {
-                vscode.window.showTextDocument(doc);
-            });
+            await generateReadmeWithAider(workspaceRoot);
         } catch (error) {
-            vscode.window.showErrorMessage(`Failed to generate README.md: ${error}`);
+            vscode.window.showErrorMessage(`Failed to send README generation request to Aider: ${error}`);
         }
     });
 
@@ -478,33 +468,15 @@ export function activate(context: vscode.ExtensionContext) {
 
     // API key management functionality removed
 
-async function generateReadmeWithAider(workspaceRoot: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-        if (!aider) {
-            reject(new Error("Aider is not running"));
-            return;
-        }
+async function generateReadmeWithAider(workspaceRoot: string): Promise<void> {
+    if (!aider) {
+        throw new Error("Aider is not running");
+    }
 
-        const prompt = `Generate a comprehensive, user-friendly, and developer-friendly README.md file for the project in the current workspace. The README should be tailored to the specific needs and nature of the project. Include the following sections: 1. Project Title and Description 2. Features 3. Prerequisites 4. Installation 5. Usage 6. Configuration 7. API Reference (if applicable) 8. Contributing 9. Testing 10. Deployment (if applicable) 11. Built With (technologies used) 12. Versioning 13. Authors 14. License 15. Acknowledgments. For each section, provide detailed and relevant information based on the project files and structure. Ensure the content is clear, concise, and helpful for both users and developers. If any section is not applicable to this project, you may omit it. Additionally: Use proper Markdown formatting for headers, lists, code blocks, etc. Include badges where appropriate (e.g., build status, version, license). If it's an open-source project, include information on how to contribute. Add a table of contents for easy navigation. Include examples and screenshots if possible. Please generate the README content now.`;
+    const prompt = `Generate a comprehensive, user-friendly, and developer-friendly README.md file for the project in the current workspace. The README should be tailored to the specific needs and nature of the project. Include the following sections: 1. Project Title and Description 2. Features 3. Prerequisites 4. Installation 5. Usage 6. Configuration 7. API Reference (if applicable) 8. Contributing 9. Testing 10. Deployment (if applicable) 11. Built With (technologies used) 12. Versioning 13. Authors 14. License 15. Acknowledgments. For each section, provide detailed and relevant information based on the project files and structure. Ensure the content is clear, concise, and helpful for both users and developers. If any section is not applicable to this project, you may omit it. Additionally: Use proper Markdown formatting for headers, lists, code blocks, etc. Include badges where appropriate (e.g., build status, version, license). If it's an open-source project, include information on how to contribute. Add a table of contents for easy navigation. Include examples and screenshots if possible. Please generate the README content now.`;
 
-        aider.sendCommand(prompt.replace(/\n/g, ' ').trim());
-
-        // Implement a way to capture Aider's response
-        let readmeContent = '';
-        const responseHandler = (response: string) => {
-            readmeContent += response;
-        };
-
-        aider.onResponse(responseHandler);
-
-        // Wait for Aider to complete the response
-        setTimeout(() => {
-            if (aider) {
-                aider.offResponse(responseHandler);
-            }
-            resolve(readmeContent);
-        }, 30000); // Increased timeout to 30 seconds to allow for a more comprehensive response
-    });
+    aider.sendCommand(prompt.replace(/\n/g, ' ').trim());
+    vscode.window.showInformationMessage('README generation request sent to Aider. Please wait for the response.');
 }
 }
 
