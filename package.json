@@ -109,6 +109,10 @@
             {
                 "command": "aider.addFileToAider",
                 "title": "Add to Aider"
+            },
+            {
+                "command": "aider.setStartupArgs",
+                "title": "Aider: Set Startup Arguments"
             }
         ],
         "menus": {

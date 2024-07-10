@@ -6,9 +6,9 @@ The VSCode Aider Extension integrates [Aider](https://aider.chat), a powerful AI
 
 ## Features
 
-- **AI-Powered Coding Assistance**: Leverage the power of AI models like GPT-4 and Claude to assist with your coding tasks.
+- **AI-Powered Coding Assistance**: Leverage the power of AI models like GPT and Claude to assist with your coding tasks.
 - **Automatic File Synchronization**: The extension automatically keeps track of open files and syncs them with Aider.
-- **Multiple AI Model Support**: Choose between different AI models, including GPT-4 and Claude variants.
+- **Multiple AI Model Support**: Choose between different AI models, including GPT and Claude variants.
 - **Code Refactoring**: Easily refactor selected code snippets using AI suggestions.
 - **Code Modification**: Get AI assistance in modifying your code based on specific instructions.
 - **README Generation**: Automatically generate comprehensive README files for your projects.
@@ -22,7 +22,7 @@ The VSCode Aider Extension integrates [Aider](https://aider.chat), a powerful AI
 
 ## Installation
 
-1. Install the Aider Extension from the Visual Studio Code Marketplace.
+1. Install the VSCode Aider Extension from the Visual Studio Code Marketplace.
 2. Ensure you have the Aider CLI tool installed on your system.
 3. Configure your API keys in the extension settings.
 
