@@ -472,6 +472,10 @@ export function activate(context: vscode.ExtensionContext) {
     });
     context.subscriptions.push(disposable);
 
+    // Register the command to set startup arguments
+    disposable = vscode.commands.registerCommand('aider.setStartupArgs', setCustomStartupArgs);
+    context.subscriptions.push(disposable);
+
     // API key management functionality removed
 
 async function generateReadmeWithAider(workspaceRoot: string): Promise<string> {
