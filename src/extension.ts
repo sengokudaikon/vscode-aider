@@ -458,6 +458,20 @@ export function activate(context: vscode.ExtensionContext) {
     disposable = vscode.commands.registerCommand('aider.modifySnippet', () => handleSelectedCode('Modify'));
     context.subscriptions.push(disposable);
 
+    // Register the "Add to Aider" command
+    disposable = vscode.commands.registerCommand('aider.addFileToAider', (uri: vscode.Uri) => {
+        if (!aider) {
+            vscode.window.showErrorMessage("Aider is not running. Please run the 'Open Aider' command first.");
+            return;
+        }
+
+        const filePath = uri.fsPath;
+        aider.addFile(filePath);
+        filesThatAiderKnows.add(filePath);
+        vscode.window.showInformationMessage(`Added ${path.basename(filePath)} to Aider.`);
+    });
+    context.subscriptions.push(disposable);
+
     // API key management functionality removed
 
 async function generateReadmeWithAider(workspaceRoot: string): Promise<string> {
