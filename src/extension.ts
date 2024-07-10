@@ -612,6 +612,11 @@ async function setCustomStartupArgs() {
     if (args !== undefined) {
         customStartupArgs = args;
         vscode.window.showInformationMessage(`Custom startup arguments set to: ${customStartupArgs}`);
+        
+        // If Aider is running, inform the user that they need to restart it
+        if (aider && aider.isActive()) {
+            vscode.window.showInformationMessage('Please restart Aider for the new startup arguments to take effect.');
+        }
     }
 }
 
