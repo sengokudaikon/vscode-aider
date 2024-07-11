@@ -107,7 +107,7 @@ const syncAiderAndVSCodeFiles = debounce(() => {
 
     const filesThatVSCodeKnows = new Set<string>();
     vscode.workspace.textDocuments.forEach((document) => {
-        if (document.uri.scheme === "file" && document.fileName && aider.isWorkspaceFile(document.fileName)) {
+        if (document.uri.scheme === "file" && document.fileName && aider?.isWorkspaceFile(document.fileName)) {
             filesThatVSCodeKnows.add(document.fileName);
         }
     });
