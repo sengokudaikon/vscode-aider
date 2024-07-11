@@ -3,6 +3,7 @@ import { AiderInterface, AiderTerminal } from './AiderTerminal';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
+import { debounce } from './utils';
 
 let customStartupArgs: string = '';
 
@@ -101,28 +102,30 @@ function handleAiderClose() {
  * Note this method has a flaw -- if a user opens a file using directly using /add in Aider, we won't know 
  * about it.  This might lead to duplicate /add statements.
  */
-function syncAiderAndVSCodeFiles() {
-    let filesThatVSCodeKnows = new Set<string>();
+const syncAiderAndVSCodeFiles = debounce(() => {
+    if (!aider) return;
+
+    const filesThatVSCodeKnows = new Set<string>();
     vscode.workspace.textDocuments.forEach((document) => {
-        if (document.uri.scheme === "file" && document.fileName && aider?.isWorkspaceFile(document.fileName)) {
+        if (document.uri.scheme === "file" && document.fileName && aider.isWorkspaceFile(document.fileName)) {
             filesThatVSCodeKnows.add(document.fileName);
         }
     });
 
-    let opened = [...filesThatVSCodeKnows].filter(x => !filesThatAiderKnows.has(x));
-    let closed = [...filesThatAiderKnows].filter(x => !filesThatVSCodeKnows.has(x));
+    const opened = [...filesThatVSCodeKnows].filter(x => !filesThatAiderKnows.has(x));
+    const closed = [...filesThatAiderKnows].filter(x => !filesThatVSCodeKnows.has(x));
     
-    let ignoreFiles = vscode.workspace.getConfiguration('aider').get('ignoreFiles') as string[];
-    let ignoreFilesRegex = ignoreFiles.map((regex) => new RegExp(regex));
+    const ignoreFiles = vscode.workspace.getConfiguration('aider').get('ignoreFiles') as string[];
+    const ignoreFilesRegex = ignoreFiles.map((regex) => new RegExp(regex));
     
-    opened = opened.filter((item) => !ignoreFilesRegex.some((regex) => regex.test(item)));
-    aider?.addFiles(opened);
+    const filteredOpened = opened.filter((item) => !ignoreFilesRegex.some((regex) => regex.test(item)));
+    aider.addFiles(filteredOpened);
 
-    closed = closed.filter((item) => !ignoreFilesRegex.some((regex) => regex.test(item)));
-    aider?.dropFiles(closed);
+    const filteredClosed = closed.filter((item) => !ignoreFilesRegex.some((regex) => regex.test(item)));
+    aider.dropFiles(filteredClosed);
 
-    filesThatAiderKnows = filesThatVSCodeKnows;
-}
+    filesThatAiderKnows = new Set(filesThatVSCodeKnows);
+}, 300);
 
 /**
  * Find a working directory for Aider.
@@ -288,33 +291,8 @@ export function activate(context: vscode.ExtensionContext) {
     });
     context.subscriptions.push(disposable);
     if (process.platform !== 'win32') {
-        vscode.workspace.onDidOpenTextDocument((document) => {
-            if (aider && document.uri.scheme === "file" && document.fileName) {
-                const filePath = document.fileName;
-                const relativePath = path.relative(calculatedWorkingDirectory || '', filePath).replace(/\\/g, '/');
-                const ignoreFiles = vscode.workspace.getConfiguration('aider').get('ignoreFiles') as string[];
-                const shouldIgnore = ignoreFiles.some((regex) => new RegExp(regex).test(relativePath));
-
-                if (!shouldIgnore && aider.isWorkspaceFile(filePath)) {
-                    aider.addFile(filePath);
-                    filesThatAiderKnows.add(filePath);
-                }
-            }
-        });
-        vscode.workspace.onDidCloseTextDocument((document) => {
-            if (aider) {
-                if (document.uri.scheme === "file" && document.fileName && aider.isWorkspaceFile(document.fileName)) {
-                    let filePath = document.fileName;
-                    let ignoreFiles = vscode.workspace.getConfiguration('aider').get('ignoreFiles') as string[];
-                    let shouldIgnore = ignoreFiles.some((regex) => new RegExp(regex).test(filePath));
-
-                    if (!shouldIgnore) {
-                        aider.dropFile(filePath);
-                        filesThatAiderKnows.delete(document.fileName);
-                    }
-                }
-            }
-        });
+        vscode.workspace.onDidOpenTextDocument(syncAiderAndVSCodeFiles);
+        vscode.workspace.onDidCloseTextDocument(syncAiderAndVSCodeFiles);
     }
 
     disposable = vscode.commands.registerCommand('aider.add', function () {
@@ -507,22 +485,19 @@ async function handleSelectedCode(action: 'Refactor' | 'Modify') {
     const selection = editor.selection;
     const text = editor.document.getText(selection);
 
-    if (!text) {
+    if (!text.trim()) {
         vscode.window.showErrorMessage("No text selected. Please select a code snippet to refactor or modify.");
         return;
     }
 
-    let task: string;
-    if (action === 'Refactor') {
-        task = "Refactor the following code to improve its structure, performance and readability without changing its functionality:";
-    } else {
-        task = await vscode.window.showInputBox({
+    const task = action === 'Refactor'
+        ? "Refactor the following code to improve its structure, performance and readability without changing its functionality:"
+        : await vscode.window.showInputBox({
             prompt: "Enter the modification task or instruction",
             placeHolder: "e.g., Add error handling, Implement a new feature, etc."
-        }) || "";
-    }
+        });
 
-    if (task === "") {
+    if (!task) {
         return; // User cancelled the input for Modify action
     }
 
