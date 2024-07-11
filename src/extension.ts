@@ -577,7 +577,7 @@ async function showAiderMenu() {
                 setCustomStartupArgs();
                 break;
             case '$(question) Help':
-                vscode.env.openExternal(vscode.Uri.parse('https://aider.chat/docs/'));
+                vscode.env.openExternal(vscode.Uri.parse('https://aider.chat/'));
                 break;
         }
     }
