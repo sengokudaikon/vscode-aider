@@ -15,6 +15,7 @@ export function convertToRelativePath(filePath: string, workingDirectory: string
 }
 
 let aider: AiderInterface | null = null;
+let aiderTerminal: vscode.Terminal | null = null;
 let filesThatAiderKnows = new Set<string>();
 let calculatedWorkingDirectory: string | undefined = undefined;
 let selectedModel: string = '--sonnet'; // Default model
@@ -24,6 +25,12 @@ let statusBarItem: vscode.StatusBarItem;
  * Create the Aider interface (currently a terminal) and start it.
  */
 async function createAider() {
+    if (aider && aider.isActive()) {
+        vscode.window.showInformationMessage('Aider is already running.');
+        aider.show();
+        return;
+    }
+
     if (process.platform === 'win32') {
         const response = await vscode.window.showWarningMessage(
             'Aider is not yet fully optimized for Windows. Some features may behave unexpectedly. Do you want to continue?',
@@ -77,6 +84,7 @@ async function createAider() {
             aider.addFiles(Array.from(openFiles));
 
             aider.show();
+            aiderTerminal = (aider as AiderTerminal)._terminal;
         }
     }).catch((err) => {
         vscode.window.showErrorMessage(`Error starting Aider: ${err}`);
@@ -90,6 +98,7 @@ function handleAiderClose() {
     if (aider) {
         aider.dispose();
         aider = null;
+        aiderTerminal = null;
         filesThatAiderKnows.clear();
         updateStatusBar();
     }
@@ -378,6 +387,9 @@ export function activate(context: vscode.ExtensionContext) {
             createAider();
         } else {
             aider.show();
+            if (aiderTerminal) {
+                aiderTerminal.show();
+            }
         }
         updateStatusBar();
     });
@@ -391,6 +403,10 @@ export function activate(context: vscode.ExtensionContext) {
             filesThatAiderKnows.clear();
             aider.dispose();
             aider = null;
+            if (aiderTerminal) {
+                aiderTerminal.dispose();
+                aiderTerminal = null;
+            }
             updateStatusBar();
         }
     });
