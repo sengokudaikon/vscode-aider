@@ -534,20 +534,24 @@ export function deactivate() {}
 async function showAiderMenu() {
     const items: vscode.QuickPickItem[] = [
         {
-            label: aider && aider.isActive() ? 'Close Aider' : 'Open Aider',
+            label: aider && aider.isActive() ? '$(stop-circle) Close Aider' : '$(play-circle) Open Aider',
             description: aider && aider.isActive() ? 'Close the current Aider session' : 'Start a new Aider session'
         },
         {
-            label: 'Select Model',
+            label: '$(symbol-enum) Select Model',
             description: 'Change the AI model used by Aider'
         },
         {
-            label: 'Sync Files',
+            label: '$(sync) Sync Files',
             description: 'Synchronize open files with Aider'
         },
         {
-            label: 'Set Custom Startup Arguments',
+            label: '$(gear) Set Custom Startup Arguments',
             description: 'Set custom arguments for Aider startup'
+        },
+        {
+            label: '$(question) Help',
+            description: 'Open Aider documentation'
         }
     ];
 
@@ -557,20 +561,23 @@ async function showAiderMenu() {
 
     if (selection) {
         switch (selection.label) {
-            case 'Open Aider':
+            case '$(play-circle) Open Aider':
                 vscode.commands.executeCommand('aider.open');
                 break;
-            case 'Close Aider':
+            case '$(stop-circle) Close Aider':
                 vscode.commands.executeCommand('aider.close');
                 break;
-            case 'Select Model':
+            case '$(symbol-enum) Select Model':
                 vscode.commands.executeCommand('aider.selectModel');
                 break;
-            case 'Sync Files':
+            case '$(sync) Sync Files':
                 vscode.commands.executeCommand('aider.syncFiles');
                 break;
-            case 'Set Custom Startup Arguments':
+            case '$(gear) Set Custom Startup Arguments':
                 setCustomStartupArgs();
+                break;
+            case '$(question) Help':
+                vscode.env.openExternal(vscode.Uri.parse('https://aider.chat/docs/'));
                 break;
         }
     }
