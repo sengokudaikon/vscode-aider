@@ -26,9 +26,14 @@ let statusBarItem: vscode.StatusBarItem;
  */
 async function createAider() {
     if (aider && aider.isActive()) {
-        vscode.window.showInformationMessage('Aider is already running.');
-        aider.show();
-        return;
+        // Close the existing Aider instance
+        aider.dispose();
+        aider = null;
+        if (aiderTerminal) {
+            aiderTerminal.dispose();
+            aiderTerminal = null;
+        }
+        filesThatAiderKnows.clear();
     }
 
     if (process.platform === 'win32') {
@@ -382,15 +387,8 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(disposable);
 
     disposable = vscode.commands.registerCommand('aider.open', function () {
-        if (!aider || !aider.isActive()) {
-            filesThatAiderKnows.clear();
-            createAider();
-        } else {
-            aider.show();
-            if (aiderTerminal) {
-                aiderTerminal.show();
-            }
-        }
+        filesThatAiderKnows.clear();
+        createAider();
         updateStatusBar();
     });
 
