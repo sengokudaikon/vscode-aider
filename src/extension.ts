@@ -206,20 +206,20 @@ const syncAiderAndVSCodeFiles = debounce(async () => {
     const filesThatVSCodeKnows = new Set<string>();
     vscode.workspace.textDocuments.forEach((document) => {
         if (document.uri.scheme === "file" && document.fileName && aider?.isWorkspaceFile(document.fileName)) {
-            filesThatVSCodeKnows.add(document.fileName);
+            filesThatVSCodeKnows.add(path.normalize(document.fileName));
         }
     });
 
     const opened = [...filesThatVSCodeKnows].filter(x => !filesThatAiderKnows.has(x));
     const closed = [...filesThatAiderKnows].filter(x => !filesThatVSCodeKnows.has(x));
     
-    const ignoreFilesRegex = ignoredFiles.map((pattern: string) => new RegExp(pattern));
+    const ignoreFilesRegex = ignoredFiles.map((pattern: string) => new RegExp(pattern.replace(/\\/g, '\\\\')));
     
     const filteredOpened = opened.filter((item) => !ignoreFilesRegex.some((regex: RegExp) => regex.test(item)));
-    aider.addFiles(filteredOpened);
+    aider.addFiles(filteredOpened.map(file => path.normalize(file)));
 
     const filteredClosed = closed.filter((item) => !ignoreFilesRegex.some((regex: RegExp) => regex.test(item)));
-    aider.dropFiles(filteredClosed);
+    aider.dropFiles(filteredClosed.map(file => path.normalize(file)));
 
     filesThatAiderKnows = new Set(filesThatVSCodeKnows);
 }, 300);
