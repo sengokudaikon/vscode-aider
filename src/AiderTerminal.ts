@@ -98,13 +98,7 @@ export class AiderTerminal implements AiderInterface {
             fullCommand = command;
         }
         
-        if (process.platform === 'win32') {
-            // For Windows, use a PowerShell command to send input
-            const psCommand = `[System.Windows.Forms.SendKeys]::SendWait('${fullCommand}{ENTER}')`;
-            this._terminal.sendText(`powershell -Command "${psCommand}"`, true);
-        } else {
-            this._terminal.sendText(this.formatCommand(fullCommand));
-        }
+        this._terminal.sendText(this.formatCommand(fullCommand));
     }
 
     addFile(filePath: string): void {
