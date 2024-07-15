@@ -51,11 +51,3 @@ For a detailed list of changes and updates, please refer to the [CHANGELOG.md](C
 - This extension is a fork of [Matt Flower](https://github.com/mattflower)'s extension
 
 For more information on using Aider, visit the [Aider documentation](https://aider.chat/docs/).
-
-## Contributing
-
-Contributions to the VSCode Aider Extension are welcome! Please refer to the project's GitHub repository for guidelines on how to contribute.
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE.md) file for details.

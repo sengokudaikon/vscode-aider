@@ -3,7 +3,7 @@
     "displayName": "VSCode Aider",
     "description": "Extension for running Aider inside VSCode",
     "icon": "images/logo.png",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "publisher": "Apertia",
     "repository": {
         "type": "git",
