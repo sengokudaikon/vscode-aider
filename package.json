@@ -108,7 +108,7 @@
             },
             {
                 "command": "aider.addFileToAider",
-                "title": "Add to Aider"
+                "title": "Aider: Add to Aider"
             },
             {
                 "command": "aider.setStartupArgs",
