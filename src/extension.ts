@@ -8,6 +8,17 @@ import { debounce } from './utils';
 let customStartupArgs: string = '';
 let ignoredFiles: string[] = [];
 
+async function updateAiderIgnoreFile() {
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    if (!workspaceFolder) {
+        vscode.window.showErrorMessage("No workspace folder found.");
+        return;
+    }
+
+    const aiderIgnorePath = vscode.Uri.joinPath(workspaceFolder.uri, '.aider.ignore');
+    await vscode.workspace.fs.writeFile(aiderIgnorePath, Buffer.from(ignoredFiles.join('\n')));
+}
+
 export function convertToRelativePath(filePath: string, workingDirectory: string): string {
     if (path.isAbsolute(filePath)) {
         return path.relative(workingDirectory, filePath);
