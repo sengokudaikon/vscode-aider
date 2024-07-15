@@ -43,7 +43,7 @@ The VSCode Aider Extension seamlessly integrates [Aider](https://aider.chat), a 
 
 ## Changelog
 
-For a detailed list of changes and updates, please refer to the [CHANGELOG.md](CHANGELOG.md) file.
+For a detailed list of changes and updates, please refer to the CHANGELOG
 
 ## Acknowledgements
 
