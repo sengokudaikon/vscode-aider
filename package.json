@@ -113,6 +113,10 @@
             {
                 "command": "aider.setStartupArgs",
                 "title": "Aider: Set Startup Arguments"
+            },
+            {
+                "command": "aider.ignoreFile",
+                "title": "Aider: Ignore this file"
             }
         ],
         "menus": {
@@ -136,6 +140,11 @@
                 {
                     "command": "aider.addFileToAider",
                     "group": "aider@1",
+                    "when": "resourceScheme == file"
+                },
+                {
+                    "command": "aider.ignoreFile",
+                    "group": "aider@2",
                     "when": "resourceScheme == file"
                 }
             ]
