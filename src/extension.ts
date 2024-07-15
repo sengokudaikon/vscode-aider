@@ -6,9 +6,7 @@ import * as os from 'os';
 import { debounce } from './utils';
 
 let customStartupArgs: string = '';
-let ignoredFiles: string[] = [];
-
-async function updateAiderIgnoreFile() {
+async function updateAiderIgnoreFile(newPattern: string) {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     if (!workspaceFolder) {
         vscode.window.showErrorMessage("No workspace folder found.");
@@ -16,7 +14,14 @@ async function updateAiderIgnoreFile() {
     }
 
     const aiderIgnorePath = vscode.Uri.joinPath(workspaceFolder.uri, '.aider.ignore');
-    await vscode.workspace.fs.writeFile(aiderIgnorePath, Buffer.from(ignoredFiles.join('\n')));
+    try {
+        const currentContent = await vscode.workspace.fs.readFile(aiderIgnorePath);
+        const updatedContent = currentContent.toString() + '\n' + newPattern;
+        await vscode.workspace.fs.writeFile(aiderIgnorePath, Buffer.from(updatedContent));
+    } catch (error) {
+        // If the file doesn't exist, create it with the new pattern
+        await vscode.workspace.fs.writeFile(aiderIgnorePath, Buffer.from(newPattern));
+    }
 }
 
 export function convertToRelativePath(filePath: string, workingDirectory: string): string {
@@ -33,6 +38,22 @@ let calculatedWorkingDirectory: string | undefined = undefined;
 let selectedModel: string = '--sonnet'; // Default model
 
 async function manageIgnoredFiles() {
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    if (!workspaceFolder) {
+        vscode.window.showErrorMessage("No workspace folder found.");
+        return;
+    }
+
+    const aiderIgnorePath = vscode.Uri.joinPath(workspaceFolder.uri, '.aider.ignore');
+    let ignoredFiles: string[] = [];
+
+    try {
+        const fileContent = await vscode.workspace.fs.readFile(aiderIgnorePath);
+        ignoredFiles = fileContent.toString().split('\n').filter(line => line.trim() !== '');
+    } catch (error) {
+        // File doesn't exist or couldn't be read
+    }
+
     const options: vscode.QuickPickOptions = {
         placeHolder: 'Select an action',
         canPickMany: false
@@ -53,8 +74,7 @@ async function manageIgnoredFiles() {
             placeHolder: '*.log'
         });
         if (pattern) {
-            ignoredFiles.push(pattern);
-            await updateAiderIgnoreFile();
+            await updateAiderIgnoreFile(pattern);
             vscode.window.showInformationMessage(`Added "${pattern}" to ignored file patterns.`);
         }
     } else if (selectedAction === 'Remove Ignored File Pattern') {
@@ -62,8 +82,8 @@ async function manageIgnoredFiles() {
             placeHolder: 'Select a pattern to remove'
         });
         if (patternToRemove) {
-            ignoredFiles = ignoredFiles.filter(p => p !== patternToRemove);
-            await updateAiderIgnoreFile();
+            const updatedContent = ignoredFiles.filter(p => p !== patternToRemove).join('\n');
+            await vscode.workspace.fs.writeFile(aiderIgnorePath, Buffer.from(updatedContent));
             vscode.window.showInformationMessage(`Removed "${patternToRemove}" from ignored file patterns.`);
         }
     }
@@ -548,8 +568,7 @@ async function ignoreFile(uri: vscode.Uri) {
     }
 
     const filePath = vscode.workspace.asRelativePath(uri);
-    ignoredFiles.push(filePath);
-    await updateAiderIgnoreFile();
+    await updateAiderIgnoreFile(filePath);
     vscode.window.showInformationMessage(`Added ${filePath} to ignored files.`);
 }
 
