@@ -20,6 +20,41 @@ let aiderTerminal: vscode.Terminal | null = null;
 let filesThatAiderKnows = new Set<string>();
 let calculatedWorkingDirectory: string | undefined = undefined;
 let selectedModel: string = '--sonnet'; // Default model
+
+async function manageIgnoredFiles() {
+    const options: vscode.QuickPickOptions = {
+        placeHolder: 'Select an action',
+        canPickMany: false
+    };
+
+    const actions = ['View Ignored Files', 'Add Ignored File Pattern', 'Remove Ignored File Pattern'];
+    const selectedAction = await vscode.window.showQuickPick(actions, options);
+
+    if (selectedAction === 'View Ignored Files') {
+        if (ignoredFiles.length === 0) {
+            vscode.window.showInformationMessage('No files are currently ignored.');
+        } else {
+            vscode.window.showInformationMessage(`Currently ignored file patterns: ${ignoredFiles.join(', ')}`);
+        }
+    } else if (selectedAction === 'Add Ignored File Pattern') {
+        const pattern = await vscode.window.showInputBox({
+            prompt: 'Enter a file pattern to ignore (e.g., *.log, temp/*, etc.)',
+            placeHolder: '*.log'
+        });
+        if (pattern) {
+            ignoredFiles.push(pattern);
+            vscode.window.showInformationMessage(`Added "${pattern}" to ignored file patterns.`);
+        }
+    } else if (selectedAction === 'Remove Ignored File Pattern') {
+        const patternToRemove = await vscode.window.showQuickPick(ignoredFiles, {
+            placeHolder: 'Select a pattern to remove'
+        });
+        if (patternToRemove) {
+            ignoredFiles = ignoredFiles.filter(p => p !== patternToRemove);
+            vscode.window.showInformationMessage(`Removed "${patternToRemove}" from ignored file patterns.`);
+        }
+    }
+}
 let statusBarItem: vscode.StatusBarItem;
 
 /**
