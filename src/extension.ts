@@ -5,6 +5,8 @@ import * as path from 'path';
 import * as os from 'os';
 import { debounce } from './utils';
 
+let ignoredFiles: string[] = [];
+
 let customStartupArgs: string = '';
 async function updateAiderIgnoreFile(newPattern: string) {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
@@ -198,12 +200,12 @@ const syncAiderAndVSCodeFiles = debounce(() => {
     const opened = [...filesThatVSCodeKnows].filter(x => !filesThatAiderKnows.has(x));
     const closed = [...filesThatAiderKnows].filter(x => !filesThatVSCodeKnows.has(x));
     
-    const ignoreFilesRegex = ignoredFiles.map((pattern) => new RegExp(pattern));
+    const ignoreFilesRegex = ignoredFiles.map((pattern: string) => new RegExp(pattern));
     
-    const filteredOpened = opened.filter((item) => !ignoreFilesRegex.some((regex) => regex.test(item)));
+    const filteredOpened = opened.filter((item) => !ignoreFilesRegex.some((regex: RegExp) => regex.test(item)));
     aider.addFiles(filteredOpened);
 
-    const filteredClosed = closed.filter((item) => !ignoreFilesRegex.some((regex) => regex.test(item)));
+    const filteredClosed = closed.filter((item) => !ignoreFilesRegex.some((regex: RegExp) => regex.test(item)));
     aider.dropFiles(filteredClosed);
 
     filesThatAiderKnows = new Set(filesThatVSCodeKnows);
@@ -550,7 +552,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     // API key management functionality removed
 
-async function updateAiderIgnoreFile() {
+async function updateAiderIgnoreFile(newPattern?: string) {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     if (!workspaceFolder) {
         vscode.window.showErrorMessage("No workspace folder found.");
@@ -558,6 +560,9 @@ async function updateAiderIgnoreFile() {
     }
 
     const aiderIgnorePath = vscode.Uri.joinPath(workspaceFolder.uri, '.aider.ignore');
+    if (newPattern) {
+        ignoredFiles.push(newPattern);
+    }
     await vscode.workspace.fs.writeFile(aiderIgnorePath, Buffer.from(ignoredFiles.join('\n')));
 }
 
@@ -570,6 +575,14 @@ async function ignoreFile(uri: vscode.Uri) {
     const filePath = vscode.workspace.asRelativePath(uri);
     await updateAiderIgnoreFile(filePath);
     vscode.window.showInformationMessage(`Added ${filePath} to ignored files.`);
+    
+    // Refresh the ignoredFiles array
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    if (workspaceFolder) {
+        const aiderIgnorePath = vscode.Uri.joinPath(workspaceFolder.uri, '.aider.ignore');
+        const content = await vscode.workspace.fs.readFile(aiderIgnorePath);
+        ignoredFiles = content.toString().split('\n').filter(line => line.trim() !== '');
+    }
 }
 
 async function generateReadmeWithAider(workspaceRoot: string): Promise<void> {
