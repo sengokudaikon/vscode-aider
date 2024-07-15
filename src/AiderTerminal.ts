@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as os from 'os';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as child_process from 'child_process';
 
 export interface AiderInterface {
     addFile(filePath: string): void;
@@ -47,8 +48,12 @@ export class AiderTerminal implements AiderInterface {
         }
 
         if (process.platform === 'win32') {
-            opts['shellPath'] = 'cmd.exe';
-            opts['shellArgs'] = ['/k', `cd /d "${this._workingDirectory}"`];
+            opts['shellPath'] = 'powershell.exe';
+            opts['shellArgs'] = [
+                '-NoExit',
+                '-Command',
+                `Set-Location -Path '${this._workingDirectory}'; Add-Type -AssemblyName System.Windows.Forms;`
+            ];
         } else {
             opts['shellPath'] = '/bin/sh';
             opts['shellArgs'] = ['-c', `cd "${this._workingDirectory}" && exec $SHELL`];
@@ -92,7 +97,14 @@ export class AiderTerminal implements AiderInterface {
         } else {
             fullCommand = command;
         }
-        this._terminal.sendText(this.formatCommand(fullCommand));
+        
+        if (process.platform === 'win32') {
+            // For Windows, use a PowerShell command to send input
+            const psCommand = `[System.Windows.Forms.SendKeys]::SendWait('${fullCommand}{ENTER}')`;
+            this._terminal.sendText(`powershell -Command "${psCommand}"`, true);
+        } else {
+            this._terminal.sendText(this.formatCommand(fullCommand));
+        }
     }
 
     addFile(filePath: string): void {
