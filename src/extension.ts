@@ -6,6 +6,7 @@ import * as os from 'os';
 import { debounce } from './utils';
 
 let customStartupArgs: string = '';
+let ignoredFiles: string[] = [];
 
 export function convertToRelativePath(filePath: string, workingDirectory: string): string {
     if (path.isAbsolute(filePath)) {
@@ -129,8 +130,7 @@ const syncAiderAndVSCodeFiles = debounce(() => {
     const opened = [...filesThatVSCodeKnows].filter(x => !filesThatAiderKnows.has(x));
     const closed = [...filesThatAiderKnows].filter(x => !filesThatVSCodeKnows.has(x));
     
-    const ignoreFiles = vscode.workspace.getConfiguration('aider').get('ignoreFiles') as string[];
-    const ignoreFilesRegex = ignoreFiles.map((regex) => new RegExp(regex));
+    const ignoreFilesRegex = ignoredFiles.map((pattern) => new RegExp(pattern));
     
     const filteredOpened = opened.filter((item) => !ignoreFilesRegex.some((regex) => regex.test(item)));
     aider.addFiles(filteredOpened);
@@ -458,6 +458,10 @@ export function activate(context: vscode.ExtensionContext) {
     disposable = vscode.commands.registerCommand('aider.setStartupArgs', setCustomStartupArgs);
     context.subscriptions.push(disposable);
 
+    // Register the command to manage ignored files
+    disposable = vscode.commands.registerCommand('aider.manageIgnoredFiles', manageIgnoredFiles);
+    context.subscriptions.push(disposable);
+
     // API key management functionality removed
 
 async function generateReadmeWithAider(workspaceRoot: string): Promise<void> {
@@ -564,6 +568,10 @@ async function showAiderMenu() {
             description: 'Set custom arguments for Aider startup'
         },
         {
+            label: '$(file-submodule) Manage Ignored Files',
+            description: 'Manage files to ignore in Aider'
+        },
+        {
             label: '$(question) Help',
             description: 'Open Aider documentation'
         }
@@ -589,6 +597,9 @@ async function showAiderMenu() {
                 break;
             case '$(gear) Set Custom Startup Arguments':
                 setCustomStartupArgs();
+                break;
+            case '$(file-submodule) Manage Ignored Files':
+                manageIgnoredFiles();
                 break;
             case '$(question) Help':
                 vscode.env.openExternal(vscode.Uri.parse('https://aider.chat/'));
