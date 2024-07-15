@@ -401,10 +401,8 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.executeCommand('aider.selectModel');
     });
     context.subscriptions.push(disposable);
-    if (process.platform !== 'win32') {
-        vscode.workspace.onDidOpenTextDocument(() => syncAiderAndVSCodeFiles());
-        vscode.workspace.onDidCloseTextDocument(() => syncAiderAndVSCodeFiles());
-    }
+    vscode.workspace.onDidOpenTextDocument(() => syncAiderAndVSCodeFiles());
+    vscode.workspace.onDidCloseTextDocument(() => syncAiderAndVSCodeFiles());
 
     disposable = vscode.commands.registerCommand('aider.add', function () {
         if (!aider) {
