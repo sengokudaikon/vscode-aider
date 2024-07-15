@@ -2,14 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.2] - 2023-XX-XX
+## [1.0.2]
 
 ### Added
 - New Aider menu system for easier access to commands
-- Custom startup arguments setting
 - Ability to ignore specific files
-- Support for multiple AI models (GPT-4, Claude 3.5 Sonnet, Claude 3 Opus)
-- Automatic file synchronization on Windows systems
+- Optimization
 
 ### Changed
 - Improved README generation process
