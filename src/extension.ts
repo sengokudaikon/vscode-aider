@@ -43,6 +43,7 @@ async function manageIgnoredFiles() {
         });
         if (pattern) {
             ignoredFiles.push(pattern);
+            await updateAiderIgnoreFile();
             vscode.window.showInformationMessage(`Added "${pattern}" to ignored file patterns.`);
         }
     } else if (selectedAction === 'Remove Ignored File Pattern') {
@@ -51,6 +52,7 @@ async function manageIgnoredFiles() {
         });
         if (patternToRemove) {
             ignoredFiles = ignoredFiles.filter(p => p !== patternToRemove);
+            await updateAiderIgnoreFile();
             vscode.window.showInformationMessage(`Removed "${patternToRemove}" from ignored file patterns.`);
         }
     }
@@ -288,6 +290,20 @@ export function activate(context: vscode.ExtensionContext) {
     updateStatusBar();
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(() => updateStatusBar()));
 
+    // Read .aider.ignore file
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    if (workspaceFolder) {
+        const aiderIgnorePath = vscode.Uri.joinPath(workspaceFolder.uri, '.aider.ignore');
+        vscode.workspace.fs.readFile(aiderIgnorePath).then(
+            (content) => {
+                ignoredFiles = content.toString().split('\n').filter(line => line.trim() !== '');
+            },
+            (error) => {
+                console.log('.aider.ignore file not found or couldn\'t be read');
+            }
+        );
+    }
+
     context.subscriptions.push(vscode.commands.registerCommand('aider.openMenu', showAiderMenu));
 
     let disposable = vscode.commands.registerCommand('aider.selectModel', async () => {
@@ -497,7 +513,34 @@ export function activate(context: vscode.ExtensionContext) {
     disposable = vscode.commands.registerCommand('aider.manageIgnoredFiles', manageIgnoredFiles);
     context.subscriptions.push(disposable);
 
+    // Register the command to ignore a file
+    disposable = vscode.commands.registerCommand('aider.ignoreFile', ignoreFile);
+    context.subscriptions.push(disposable);
+
     // API key management functionality removed
+
+async function ignoreFile(uri: vscode.Uri) {
+    if (!uri) {
+        vscode.window.showErrorMessage("No file selected.");
+        return;
+    }
+
+    const filePath = vscode.workspace.asRelativePath(uri);
+    ignoredFiles.push(filePath);
+    await updateAiderIgnoreFile();
+    vscode.window.showInformationMessage(`Added ${filePath} to ignored files.`);
+}
+
+async function updateAiderIgnoreFile() {
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    if (!workspaceFolder) {
+        vscode.window.showErrorMessage("No workspace folder found.");
+        return;
+    }
+
+    const aiderIgnorePath = vscode.Uri.joinPath(workspaceFolder.uri, '.aider.ignore');
+    await vscode.workspace.fs.writeFile(aiderIgnorePath, Buffer.from(ignoredFiles.join('\n')));
+}
 
 async function generateReadmeWithAider(workspaceRoot: string): Promise<void> {
     if (!aider) {
