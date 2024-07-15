@@ -187,8 +187,21 @@ function handleAiderClose() {
  * Note this method has a flaw -- if a user opens a file using directly using /add in Aider, we won't know 
  * about it.  This might lead to duplicate /add statements.
  */
-const syncAiderAndVSCodeFiles = debounce(() => {
+const syncAiderAndVSCodeFiles = debounce(async () => {
     if (!aider) return;
+
+    // Re-read the .aider.ignore file
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    if (workspaceFolder) {
+        const aiderIgnorePath = vscode.Uri.joinPath(workspaceFolder.uri, '.aider.ignore');
+        try {
+            const content = await vscode.workspace.fs.readFile(aiderIgnorePath);
+            ignoredFiles = content.toString().split('\n').filter(line => line.trim() !== '');
+        } catch (error) {
+            console.log('.aider.ignore file not found or couldn\'t be read');
+            ignoredFiles = [];
+        }
+    }
 
     const filesThatVSCodeKnows = new Set<string>();
     vscode.workspace.textDocuments.forEach((document) => {
@@ -389,8 +402,8 @@ export function activate(context: vscode.ExtensionContext) {
     });
     context.subscriptions.push(disposable);
     if (process.platform !== 'win32') {
-        vscode.workspace.onDidOpenTextDocument(syncAiderAndVSCodeFiles);
-        vscode.workspace.onDidCloseTextDocument(syncAiderAndVSCodeFiles);
+        vscode.workspace.onDidOpenTextDocument(() => syncAiderAndVSCodeFiles());
+        vscode.workspace.onDidCloseTextDocument(() => syncAiderAndVSCodeFiles());
     }
 
     disposable = vscode.commands.registerCommand('aider.add', function () {
@@ -460,12 +473,12 @@ export function activate(context: vscode.ExtensionContext) {
     
     context.subscriptions.push(disposable);
 
-    disposable = vscode.commands.registerCommand('aider.syncFiles', function () {
+    disposable = vscode.commands.registerCommand('aider.syncFiles', async function () {
         if (!aider) {
             vscode.window.showErrorMessage("Aider is not running.  Please run the 'Open Aider' command first.");
         }
 
-        syncAiderAndVSCodeFiles();
+        await syncAiderAndVSCodeFiles();
     });
 
     context.subscriptions.push(disposable);
