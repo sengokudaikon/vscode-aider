@@ -519,6 +519,17 @@ export function activate(context: vscode.ExtensionContext) {
 
     // API key management functionality removed
 
+async function updateAiderIgnoreFile() {
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    if (!workspaceFolder) {
+        vscode.window.showErrorMessage("No workspace folder found.");
+        return;
+    }
+
+    const aiderIgnorePath = vscode.Uri.joinPath(workspaceFolder.uri, '.aider.ignore');
+    await vscode.workspace.fs.writeFile(aiderIgnorePath, Buffer.from(ignoredFiles.join('\n')));
+}
+
 async function ignoreFile(uri: vscode.Uri) {
     if (!uri) {
         vscode.window.showErrorMessage("No file selected.");
@@ -529,17 +540,6 @@ async function ignoreFile(uri: vscode.Uri) {
     ignoredFiles.push(filePath);
     await updateAiderIgnoreFile();
     vscode.window.showInformationMessage(`Added ${filePath} to ignored files.`);
-}
-
-async function updateAiderIgnoreFile() {
-    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-    if (!workspaceFolder) {
-        vscode.window.showErrorMessage("No workspace folder found.");
-        return;
-    }
-
-    const aiderIgnorePath = vscode.Uri.joinPath(workspaceFolder.uri, '.aider.ignore');
-    await vscode.workspace.fs.writeFile(aiderIgnorePath, Buffer.from(ignoredFiles.join('\n')));
 }
 
 async function generateReadmeWithAider(workspaceRoot: string): Promise<void> {
