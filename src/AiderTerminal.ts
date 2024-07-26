@@ -27,8 +27,8 @@ export class AiderTerminal implements AiderInterface {
     private responseHandlers: ((response: string) => void)[] = [];
 
     constructor(openaiAPIKey: string | null | undefined, anthropicAPIKey: string | null | undefined, aiderCommand: string, onDidCloseTerminal: () => void, workingDirectory: string) {
-        this._workingDirectory = workingDirectory;
-        this._gitWorkingDirectory = this.findGitWorkingDirectory(workingDirectory);
+        this._workingDirectory = this.findProjectRoot(workingDirectory);
+        this._gitWorkingDirectory = this.findGitWorkingDirectory(this._workingDirectory);
 
         let opts: vscode.TerminalOptions = {
             'name': "Aider",
@@ -81,8 +81,7 @@ export class AiderTerminal implements AiderInterface {
     }
 
     private formatPath(filePath: string): string {
-        const baseDir = this._gitWorkingDirectory || this._workingDirectory;
-        const relativePath = path.relative(baseDir, filePath);
+        const relativePath = path.relative(this._workingDirectory, filePath);
         return relativePath.replace(/\\/g, '/');
     }
 
@@ -152,6 +151,18 @@ export class AiderTerminal implements AiderInterface {
 
     private formatCommand(command: string): string {
         return `${command}${os.EOL}`;
+    }
+
+    private findProjectRoot(startPath: string): string {
+        let currentPath = startPath;
+        while (currentPath !== path.parse(currentPath).root) {
+            if (fs.existsSync(path.join(currentPath, 'package.json')) || 
+                fs.existsSync(path.join(currentPath, '.git'))) {
+                return currentPath;
+            }
+            currentPath = path.dirname(currentPath);
+        }
+        return startPath; // If no project root found, return the original path
     }
 
     private findGitWorkingDirectory(startPath: string): string | null {
