@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.4]
+
+- Fixes
+
+## [1.0.3]
+
+- Few fixes
+
 ## [1.0.2]
 
 ### Added
