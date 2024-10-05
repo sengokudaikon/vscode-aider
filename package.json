@@ -58,6 +58,11 @@
                     "type": "string",
                     "default": "",
                     "description": "Set the working directory for Aider. Leave empty to use the workspace root or the directory of the active file."
+                },
+                "aider.customModels": {
+                    "type": "object",
+                    "default": {},
+                    "description": "Custom models for Aider. Each key is the model name, and the value is the startup argument."
                 }
             }
         },

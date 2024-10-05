@@ -8,6 +8,7 @@ import { debounce } from './utils';
 let ignoredFiles: string[] = [];
 
 let customStartupArgs: string = '';
+let customModels: { [key: string]: string } = {};
 async function updateAiderIgnoreFile(newPattern: string) {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     if (!workspaceFolder) {
@@ -130,7 +131,10 @@ async function createAider() {
     findWorkingDirectory(workingDirectory).then((workingDirectory) => {
         calculatedWorkingDirectory = workingDirectory;
         let fullCommand = `${aiderCommandLine}`;
-        if (selectedModel !== 'custom') {
+        if (selectedModel.startsWith('custom:')) {
+            const modelName = selectedModel.substring(7);
+            fullCommand += ` ${customModels[modelName]}`;
+        } else if (selectedModel !== 'custom') {
             fullCommand += ` ${selectedModel}`;
         }
         if (customStartupArgs) {
@@ -306,23 +310,29 @@ vscode.workspace.onDidChangeConfiguration((e) => {
     }
 });
 
+function loadCustomModels() {
+    const config = vscode.workspace.getConfiguration('aider');
+    customModels = config.get('customModels', {});
+}
+
 function updateStatusBar() {
     let modelName;
-    switch (selectedModel) {
-        case '--4o':
-            modelName = 'GPT-4o';
-            break;
-        case '--sonnet':
-            modelName = 'Claude 3.5 Sonnet';
-            break;
-        case '--opus':
-            modelName = 'Claude 3 Opus';
-            break;
-        case 'custom':
-            modelName = 'Custom';
-            break;
-        default:
-            modelName = 'Unknown';
+    if (selectedModel.startsWith('custom:')) {
+        modelName = selectedModel.substring(7);
+    } else {
+        switch (selectedModel) {
+            case '--4o':
+                modelName = 'GPT-4o';
+                break;
+            case '--sonnet':
+                modelName = 'Claude 3.5 Sonnet';
+                break;
+            case '--opus':
+                modelName = 'Claude 3 Opus';
+                break;
+            default:
+                modelName = 'Unknown';
+        }
     }
     statusBarItem.text = `🤖 Aider: ${modelName}`;
     statusBarItem.command = 'aider.openMenu';
@@ -678,6 +688,29 @@ async function setCustomStartupArgs() {
             vscode.window.showInformationMessage('Please restart Aider for the new startup arguments to take effect.');
         }
     }
+}
+
+async function addCustomModel() {
+    const name = await vscode.window.showInputBox({
+        prompt: 'Enter a name for the custom model',
+        placeHolder: 'e.g., My Custom GPT-4'
+    });
+
+    if (!name) return;
+
+    const value = await vscode.window.showInputBox({
+        prompt: 'Enter the startup argument for the custom model',
+        placeHolder: 'e.g., --model gpt-4'
+    });
+
+    if (!value) return;
+
+    customModels[name] = value;
+
+    const config = vscode.workspace.getConfiguration('aider');
+    await config.update('customModels', customModels, vscode.ConfigurationTarget.Global);
+
+    vscode.window.showInformationMessage(`Custom model "${name}" added successfully.`);
 }
 
 export function deactivate() {}
