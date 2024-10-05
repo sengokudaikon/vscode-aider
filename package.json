@@ -135,6 +135,10 @@
             {
                 "command": "aider.addReadOnlyFileToAider",
                 "title": "Aider: Add to Aider as Read-Only"
+            },
+            {
+                "command": "aider.fixError",
+                "title": "Aider: Fix Error"
             }
         ],
         "menus": {
