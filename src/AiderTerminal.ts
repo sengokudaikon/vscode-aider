@@ -104,7 +104,10 @@ export class AiderTerminal implements AiderInterface {
             fullCommand = command;
         }
         
-        this._terminal.sendText(this.formatCommand(fullCommand), true);
+        // Remove all whitespace, line breaks, and symbols that might cause breaks
+        fullCommand = fullCommand.replace(/\s+/g, ' ').trim();
+        
+        this._terminal.sendText(fullCommand, true);
     }
 
     addFile(filePath: string): void {
