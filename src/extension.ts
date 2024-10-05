@@ -6,6 +6,7 @@ import { debounce } from './utils';
 import modelsJson from '../models.json';
 
 let ignoredFiles: string[] = [];
+let diagnosticCollection: vscode.DiagnosticCollection;
 
 let customStartupArgs: string = '';
 let customModels: { [key: string]: string } = {};
@@ -608,7 +609,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(disposable);
 
     // Register the command to fix errors with Aider
-    disposable = vscode.commands.registerCommand('aider.fixError', async () => {
+    disposable = vscode.commands.registerCommand('aider.fixError', async (diagnostic: vscode.Diagnostic) => {
         if (!aider) {
             vscode.window.showErrorMessage("Aider is not running. Please run the 'Open Aider' command first.");
             return;
@@ -616,12 +617,11 @@ export function activate(context: vscode.ExtensionContext) {
 
         const editor = vscode.window.activeTextEditor;
         if (editor) {
-            const selection = editor.selection;
-            const error = editor.document.getText(selection);
             const filePath = editor.document.uri.fsPath;
-            const lineNumber = selection.start.line + 1;
+            const lineNumber = diagnostic.range.start.line + 1;
+            const errorMessage = diagnostic.message;
 
-            const prompt = `Fix the following error in file ${filePath} at line ${lineNumber}:\n\n${error}`;
+            const prompt = `Fix the following error in file ${filePath} at line ${lineNumber}:\n\n${errorMessage}`;
             aider.sendCommand(prompt);
             vscode.window.showInformationMessage('Error sent to Aider for fixing. Please check the Aider terminal for the response.');
         } else {
@@ -629,6 +629,18 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
     context.subscriptions.push(disposable);
+
+    // Create a diagnostic collection to store and manage diagnostics
+    diagnosticCollection = vscode.languages.createDiagnosticCollection('aider');
+    context.subscriptions.push(diagnosticCollection);
+
+    // Listen for changes in diagnostics
+    vscode.languages.onDidChangeDiagnostics((e: vscode.DiagnosticChangeEvent) => {
+        e.uris.forEach(uri => {
+            const diagnostics = vscode.languages.getDiagnostics(uri);
+            diagnosticCollection.set(uri, diagnostics);
+        });
+    });
 
     // API key management functionality removed
 

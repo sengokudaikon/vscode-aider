@@ -32,6 +32,15 @@
                 "title": "Fix Error with Aider"
             }
         ],
+        "menus": {
+            "view/item/context": [
+                {
+                    "command": "aider.fixError",
+                    "when": "view == problems",
+                    "group": "navigation"
+                }
+            ]
+        },
         "configuration": {
             "title": "Aider",
             "properties": {
