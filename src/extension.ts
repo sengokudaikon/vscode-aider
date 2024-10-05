@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { debounce } from './utils';
-import * as modelsJson from '../models.json';
+import modelsJson from '../models.json';
 
 let ignoredFiles: string[] = [];
 
@@ -366,7 +366,7 @@ export function activate(context: vscode.ExtensionContext) {
     let disposable = vscode.commands.registerCommand('aider.selectModel', async () => {
         loadCustomModels();
         const models = [
-            ...modelsJson.defaultModels.map(model => ({
+            ...modelsJson.defaultModels.map((model: any) => ({
                 label: `$(${model.icon}) ${model.label}`,
                 value: model.value,
                 description: selectedModel === model.value ? '(Current)' : ''
