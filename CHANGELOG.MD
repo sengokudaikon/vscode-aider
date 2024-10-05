@@ -5,8 +5,6 @@ All notable changes to this project will be documented in this file. Let's celeb
 ## [1.0.5] - 2024-10-05
 
 ### 🌟 Added
-- 🎨 Prettier README with emojis
-- 📅 Updated CHANGELOG format
 - 🛠️ New feature to fix errors by right-clicking and selecting "Fix with Aider"
 - 🤖 Support for new AI models
 - ⚙️ Ability to select and set default AI model
