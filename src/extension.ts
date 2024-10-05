@@ -7,6 +7,7 @@ import modelsJson from '../models.json';
 
 let ignoredFiles: string[] = [];
 let diagnosticCollection: vscode.DiagnosticCollection;
+let diagnosticsMap: Map<string, vscode.Diagnostic[]> = new Map();
 
 let customStartupArgs: string = '';
 let customModels: { [key: string]: string } = {};
@@ -609,24 +610,20 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(disposable);
 
     // Register the command to fix errors with Aider
-    disposable = vscode.commands.registerCommand('aider.fixError', async (diagnostic: vscode.Diagnostic) => {
+    disposable = vscode.commands.registerCommand('aider.fixError', async (document: vscode.TextDocument, diagnostic: vscode.Diagnostic) => {
         if (!aider) {
             vscode.window.showErrorMessage("Aider is not running. Please run the 'Open Aider' command first.");
             return;
         }
 
-        const editor = vscode.window.activeTextEditor;
-        if (editor) {
-            const filePath = editor.document.uri.fsPath;
-            const lineNumber = diagnostic.range.start.line + 1;
-            const errorMessage = diagnostic.message;
+        const filePath = document.uri.fsPath;
+        const lineNumber = diagnostic.range.start.line + 1;
+        const errorMessage = diagnostic.message;
+        const code = document.getText(diagnostic.range);
 
-            const prompt = `Fix the following error in file ${filePath} at line ${lineNumber}:\n\n${errorMessage}`;
-            aider.sendCommand(prompt);
-            vscode.window.showInformationMessage('Error sent to Aider for fixing. Please check the Aider terminal for the response.');
-        } else {
-            vscode.window.showErrorMessage('No active text editor.');
-        }
+        const prompt = `Fix the following error in file ${filePath} at line ${lineNumber}:\n\nError: ${errorMessage}\n\nCode:\n${code}`;
+        aider.sendCommand(prompt);
+        vscode.window.showInformationMessage('Error sent to Aider for fixing. Please check the Aider terminal for the response.');
     });
     context.subscriptions.push(disposable);
 
@@ -635,14 +632,42 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(diagnosticCollection);
 
     // Listen for changes in diagnostics
-    vscode.languages.onDidChangeDiagnostics((e: vscode.DiagnosticChangeEvent) => {
-        e.uris.forEach(uri => {
-            const diagnostics = vscode.languages.getDiagnostics(uri);
-            diagnosticCollection.set(uri, diagnostics);
-        });
-    });
+    context.subscriptions.push(vscode.languages.onDidChangeDiagnostics(onDidChangeDiagnostics));
+
+    // Register a code action provider
+    context.subscriptions.push(vscode.languages.registerCodeActionsProvider('*', new AiderCodeActionProvider(), {
+        providedCodeActionKinds: [vscode.CodeActionKind.QuickFix]
+    }));
 
     // API key management functionality removed
+
+function onDidChangeDiagnostics(event: vscode.DiagnosticChangeEvent) {
+    for (const uri of event.uris) {
+        const diagnostics = vscode.languages.getDiagnostics(uri);
+        diagnosticsMap.set(uri.toString(), diagnostics);
+    }
+}
+
+class AiderCodeActionProvider implements vscode.CodeActionProvider {
+    provideCodeActions(document: vscode.TextDocument, range: vscode.Range | vscode.Selection, context: vscode.CodeActionContext, token: vscode.CancellationToken): vscode.ProviderResult<(vscode.Command | vscode.CodeAction)[]> {
+        const diagnostics = diagnosticsMap.get(document.uri.toString()) || [];
+        return diagnostics
+            .filter(diagnostic => range.intersection(diagnostic.range))
+            .map(diagnostic => this.createCommandCodeAction(document, diagnostic));
+    }
+
+    private createCommandCodeAction(document: vscode.TextDocument, diagnostic: vscode.Diagnostic): vscode.CodeAction {
+        const action = new vscode.CodeAction('Fix with Aider', vscode.CodeActionKind.QuickFix);
+        action.command = {
+            command: 'aider.fixError',
+            title: 'Fix with Aider',
+            arguments: [document, diagnostic]
+        };
+        action.diagnostics = [diagnostic];
+        action.isPreferred = true;
+        return action;
+    }
+}
 
 async function updateAiderIgnoreFile(newPattern?: string) {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
