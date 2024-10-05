@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { debounce } from './utils';
+import * as modelsJson from '../models.json';
 
 let ignoredFiles: string[] = [];
 

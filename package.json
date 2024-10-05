@@ -28,6 +28,11 @@
                 "title": "Modify with Aider"
             }
         ],
+    },
+    "files": [
+        "out/**/*",
+        "models.json"
+    ],
         "configuration": {
             "title": "Aider",
             "properties": {
