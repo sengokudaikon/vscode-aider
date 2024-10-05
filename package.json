@@ -15,6 +15,7 @@
     "categories": [
         "AI"
     ],
+    "keywords": ["aider", "openai", "ai", "artificial intelligence", "assistant", "code", "editor"],
     "activationEvents": [],
     "main": "./out/extension.js",
     "contributes": {
