@@ -66,8 +66,8 @@
                 },
                 "aider.defaultModel": {
                     "type": "string",
-                    "default": "--sonnet",
-                    "description": "The default model to use for Aider."
+                    "default": "",
+                    "description": "The default model to use for Aider. Leave empty to use Aider's default."
                 }
             }
         },

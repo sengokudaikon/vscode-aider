@@ -38,7 +38,7 @@ let aider: AiderInterface | null = null;
 let aiderTerminal: vscode.Terminal | null = null;
 let filesThatAiderKnows = new Set<string>();
 let calculatedWorkingDirectory: string | undefined = undefined;
-let selectedModel: string = vscode.workspace.getConfiguration('aider').get('defaultModel', '--sonnet');
+let selectedModel: string = '';
 
 async function manageIgnoredFiles() {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
@@ -136,11 +136,13 @@ async function createAider() {
 
     calculatedWorkingDirectory = gitRoot;
     let fullCommand = `${aiderCommandLine}`;
-    if (selectedModel.startsWith('custom:')) {
-        const modelName = selectedModel.substring(7);
-        fullCommand += ` ${customModels[modelName]}`;
-    } else if (selectedModel !== 'custom') {
-        fullCommand += ` ${selectedModel}`;
+    if (selectedModel) {
+        if (selectedModel.startsWith('custom:')) {
+            const modelName = selectedModel.substring(7);
+            fullCommand += ` ${customModels[modelName]}`;
+        } else if (selectedModel !== 'custom') {
+            fullCommand += ` ${selectedModel}`;
+        }
     }
     if (customStartupArgs) {
         fullCommand += ` ${customStartupArgs}`;
@@ -330,7 +332,9 @@ function loadCustomModels() {
 
 function updateStatusBar() {
     let modelName;
-    if (selectedModel.startsWith('custom:')) {
+    if (!selectedModel) {
+        modelName = 'Default';
+    } else if (selectedModel.startsWith('custom:')) {
         modelName = selectedModel.substring(7);
     } else {
         switch (selectedModel) {
