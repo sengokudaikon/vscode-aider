@@ -26,6 +26,10 @@
             {
                 "command": "aider.modifySnippet",
                 "title": "Modify with Aider"
+            },
+            {
+                "command": "aider.fixError",
+                "title": "Fix Error with Aider"
             }
         ],
         "configuration": {
@@ -148,6 +152,11 @@
                 {
                     "command": "aider.modifySnippet",
                     "group": "aider@2"
+                },
+                {
+                    "command": "aider.fixError",
+                    "group": "aider@3",
+                    "when": "editorHasSelection"
                 }
             ],
             "explorer/context": [

@@ -607,6 +607,29 @@ export function activate(context: vscode.ExtensionContext) {
     disposable = vscode.commands.registerCommand('aider.ignoreFile', ignoreFile);
     context.subscriptions.push(disposable);
 
+    // Register the command to fix errors with Aider
+    disposable = vscode.commands.registerCommand('aider.fixError', async () => {
+        if (!aider) {
+            vscode.window.showErrorMessage("Aider is not running. Please run the 'Open Aider' command first.");
+            return;
+        }
+
+        const editor = vscode.window.activeTextEditor;
+        if (editor) {
+            const selection = editor.selection;
+            const error = editor.document.getText(selection);
+            const filePath = editor.document.uri.fsPath;
+            const lineNumber = selection.start.line + 1;
+
+            const prompt = `Fix the following error in file ${filePath} at line ${lineNumber}:\n\n${error}`;
+            aider.sendCommand(prompt);
+            vscode.window.showInformationMessage('Error sent to Aider for fixing. Please check the Aider terminal for the response.');
+        } else {
+            vscode.window.showErrorMessage('No active text editor.');
+        }
+    });
+    context.subscriptions.push(disposable);
+
     // API key management functionality removed
 
 async function updateAiderIgnoreFile(newPattern?: string) {
