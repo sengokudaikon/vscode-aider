@@ -826,3 +826,13 @@ async function showAiderMenu() {
         }
     }
 }
+function findGitRoot(startPath: string): string | null {
+    let currentPath = startPath;
+    while (currentPath !== path.parse(currentPath).root) {
+        if (fs.existsSync(path.join(currentPath, '.git'))) {
+            return currentPath;
+        }
+        currentPath = path.dirname(currentPath);
+    }
+    return null;
+}
