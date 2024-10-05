@@ -635,19 +635,6 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.languages.onDidChangeDiagnostics(onDidChangeDiagnostics));
 
     // Register a code action provider
-    context.subscriptions.push(vscode.languages.registerCodeActionsProvider('*', new AiderCodeActionProvider(), {
-        providedCodeActionKinds: [vscode.CodeActionKind.QuickFix]
-    }));
-
-    // API key management functionality removed
-
-function onDidChangeDiagnostics(event: vscode.DiagnosticChangeEvent) {
-    for (const uri of event.uris) {
-        const diagnostics = vscode.languages.getDiagnostics(uri);
-        diagnosticsMap.set(uri.toString(), diagnostics);
-    }
-}
-
 class AiderCodeActionProvider implements vscode.CodeActionProvider {
     provideCodeActions(document: vscode.TextDocument, range: vscode.Range | vscode.Selection, context: vscode.CodeActionContext, token: vscode.CancellationToken): vscode.ProviderResult<(vscode.Command | vscode.CodeAction)[]> {
         const diagnostics = diagnosticsMap.get(document.uri.toString()) || [];
@@ -666,6 +653,19 @@ class AiderCodeActionProvider implements vscode.CodeActionProvider {
         action.diagnostics = [diagnostic];
         action.isPreferred = true;
         return action;
+    }
+}
+
+    context.subscriptions.push(vscode.languages.registerCodeActionsProvider('*', new AiderCodeActionProvider(), {
+        providedCodeActionKinds: [vscode.CodeActionKind.QuickFix]
+    }));
+
+    // API key management functionality removed
+
+function onDidChangeDiagnostics(event: vscode.DiagnosticChangeEvent) {
+    for (const uri of event.uris) {
+        const diagnostics = vscode.languages.getDiagnostics(uri);
+        diagnosticsMap.set(uri.toString(), diagnostics);
     }
 }
 
