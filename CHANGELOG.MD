@@ -7,9 +7,17 @@ All notable changes to this project will be documented in this file. Let's celeb
 ### 🌟 Added
 - 🎨 Prettier README with emojis
 - 📅 Updated CHANGELOG format
+- 🛠️ New feature to fix errors by right-clicking and selecting "Fix with Aider"
+- 🤖 Support for new AI models
+- ⚙️ Ability to select and set default AI model
+- 🔧 Option to add custom AI models
 
 ### 🔧 Changed
 - 📚 Improved documentation readability
+- 🚀 Overall performance improvements and optimizations
+
+### 🐛 Fixed
+- Various bug fixes and stability improvements
 
 ## [1.0.4] - 2024-10-04
 

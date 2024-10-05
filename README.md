@@ -8,12 +8,15 @@ Supercharge your coding experience with the VSCode Aider Extension! This powerfu
 
 - 🧠 **AI-Powered Coding Assistance**: Harness the power of GPT-4 and Claude to turbocharge your coding tasks.
 - 🔄 **Automatic File Synchronization**: Keep your files in perfect harmony with Aider.
-- 🤖 **Multiple AI Model Support**: Choose your AI sidekick from a variety of models.
+- 🤖 **Multiple AI Model Support**: Choose your AI sidekick from a variety of models, including new additions.
 - 🔧 **Code Refactoring and Modification**: Transform your code with AI-powered suggestions.
 - 📝 **README Generation**: Craft beautiful project documentation with a single click.
 - ⚙️ **Custom Startup Arguments**: Tailor Aider to your exact needs.
 - 📁 **File Management**: Effortlessly manage your files right from the VSCode explorer.
 - 🎛️ **Intuitive Menu System**: Access all of Aider's superpowers with ease.
+- 🛠️ **Error Fixing**: Right-click on errors to get AI-powered fix suggestions.
+- 🎯 **Default Model Selection**: Set your preferred AI model as the default.
+- 🔌 **Custom Model Integration**: Add and use your own AI models with Aider.
 
 ## 🛠️ Requirements
 
