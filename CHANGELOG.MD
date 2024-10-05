@@ -1,39 +1,56 @@
-# ChangeLog
+# 🚀 ChangeLog
 
-All notable changes to this project will be documented in this file.
+All notable changes to this project will be documented in this file. Let's celebrate our progress! 🎉
 
-## [1.0.4]
+## [1.0.5] - 2024-10-05
 
-- Fixes
+### 🌟 Added
+- 🎨 Prettier README with emojis
+- 📅 Updated CHANGELOG format
 
-## [1.0.3]
+### 🔧 Changed
+- 📚 Improved documentation readability
 
-- Few fixes
+## [1.0.4] - 2024-10-04
 
-## [1.0.2]
+### 🐛 Fixed
+- 🔧 Various bug fixes and improvements
 
-### Added
-- New Aider menu system for easier access to commands
-- Ability to ignore specific files
-- Optimization
+## [1.0.3] - 2024-10-03
 
-### Changed
-- Improved README generation process
-- Enhanced file synchronization between VSCode and Aider
-- Refactored code for better performance and maintainability
+### 🔧 Changed
+- 🐛 Minor fixes and enhancements
 
-### Fixed
-- Issues with file paths on Windows systems
-- Bug where ignored files were not properly excluded
+## [1.0.2] - 2024-10-02
 
-## [1.0.1]
+### 🌟 Added
+- 📊 New Aider menu system for easier access to commands
+- 🚫 Ability to ignore specific files
+- ⚡ Optimization improvements
 
-- Changelog
-- Add files by Right Click > Add to Aider
-- Changed README generation
-- Improved stability and performance
-- Bug fixes
+### 🔧 Changed
+- 📝 Improved README generation process
+- 🔄 Enhanced file synchronization between VSCode and Aider
+- 🏗️ Refactored code for better performance and maintainability
 
-## [1.0.0]
+### 🐛 Fixed
+- 🪟 Issues with file paths on Windows systems
+- 🚫 Bug where ignored files were not properly excluded
 
-- Initial version
+## [1.0.1] - 2024-10-01
+
+### 🌟 Added
+- 📜 Changelog
+- 📁 Add files by Right Click > Add to Aider
+- 📝 Changed README generation
+
+### 🔧 Changed
+- 🚀 Improved stability and performance
+
+### 🐛 Fixed
+- Various bug fixes
+
+## [1.0.0] - 2024-09-30
+
+### 🎉 Added
+- 🚀 Initial version release
