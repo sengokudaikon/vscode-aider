@@ -9,6 +9,8 @@ export interface AiderInterface {
     addFiles(filePaths: string[]): void;
     dropFile(filePath: string): void;
     dropFiles(filePaths: string[]): void;
+    addReadOnlyFile(filePath: string): void;
+    addReadOnlyFiles(filePaths: string[]): void;
     sendCommand(command: string, paths?: string[]): void;
     isWorkspaceFile(filePath: string): boolean;
     isActive(): boolean;
@@ -122,6 +124,16 @@ export class AiderTerminal implements AiderInterface {
     dropFiles(filePaths: string[]): void {
         if (filePaths.length > 0) {
             this.sendCommand('/drop', filePaths);
+        }
+    }
+
+    addReadOnlyFile(filePath: string): void {
+        this.sendCommand('/read-only', [filePath]);
+    }
+
+    addReadOnlyFiles(filePaths: string[]): void {
+        if (filePaths.length > 0) {
+            this.sendCommand('/read-only', filePaths);
         }
     }
 

@@ -127,6 +127,10 @@
             {
                 "command": "aider.ignoreFile",
                 "title": "Aider: Ignore this file"
+            },
+            {
+                "command": "aider.addReadOnlyFileToAider",
+                "title": "Aider: Add to Aider as Read-Only"
             }
         ],
         "menus": {
@@ -153,8 +157,13 @@
                     "when": "resourceScheme == file"
                 },
                 {
-                    "command": "aider.ignoreFile",
+                    "command": "aider.addReadOnlyFileToAider",
                     "group": "aider@2",
+                    "when": "resourceScheme == file"
+                },
+                {
+                    "command": "aider.ignoreFile",
+                    "group": "aider@3",
                     "when": "resourceScheme == file"
                 }
             ]

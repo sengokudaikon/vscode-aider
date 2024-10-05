@@ -587,6 +587,20 @@ export function activate(context: vscode.ExtensionContext) {
     });
     context.subscriptions.push(disposable);
 
+    // Register the "Add to Aider as Read-Only" command
+    disposable = vscode.commands.registerCommand('aider.addReadOnlyFileToAider', (uri: vscode.Uri) => {
+        if (!aider) {
+            vscode.window.showErrorMessage("Aider is not running. Please run the 'Open Aider' command first.");
+            return;
+        }
+
+        const filePath = uri.fsPath;
+        aider.addReadOnlyFile(filePath);
+        filesThatAiderKnows.add(filePath);
+        vscode.window.showInformationMessage(`Added ${path.basename(filePath)} to Aider as read-only.`);
+    });
+    context.subscriptions.push(disposable);
+
     // Register the command to set startup arguments
     disposable = vscode.commands.registerCommand('aider.setStartupArgs', setCustomStartupArgs);
     context.subscriptions.push(disposable);
