@@ -621,7 +621,7 @@ export function activate(context: vscode.ExtensionContext) {
         const errorMessage = diagnostic.message;
         const code = document.getText(diagnostic.range);
 
-        const prompt = `Fix the following error in file ${filePath} at line ${lineNumber}:\n\nError: ${errorMessage}\n\nCode:\n${code}`;
+        const prompt = `Fix "${errorMessage}" in file ${filePath} at line ${lineNumber}. The problematic code is:\n\n${code}`;
         aider.sendCommand(prompt);
         vscode.window.showInformationMessage('Error sent to Aider for fixing. Please check the Aider terminal for the response.');
     });
