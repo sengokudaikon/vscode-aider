@@ -149,11 +149,6 @@ export class AiderTerminal implements AiderInterface {
         return this._isActive;
     }
 
-    isWorkspaceFile(filePath: string) : boolean {
-        return filePath.startsWith(this._workingDirectory);
-    }
-
-
     show(): void {
         this._terminal.show();
     }
