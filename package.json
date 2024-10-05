@@ -1,9 +1,9 @@
 {
     "name": "vscode-aider",
     "displayName": "VSCode Aider",
-    "description": "Extension for running Aider inside VSCode",
+    "description": "Run Aider directly within VSCode for seamless integration and enhanced workflow.",
     "icon": "images/logo.png",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "publisher": "Apertia",
     "repository": {
         "type": "git",
@@ -13,7 +13,7 @@
         "vscode": "^1.50.0"
     },
     "categories": [
-        "Other"
+        "AI"
     ],
     "activationEvents": [],
     "main": "./out/extension.js",

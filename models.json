@@ -1,14 +1,9 @@
 {
   "defaultModels": [
     {
-      "label": "Claude 3.5 Sonnet (Default)",
+      "label": "Claude 3.5 Sonnet",
       "value": "--sonnet",
       "icon": "sparkle"
-    },
-    {
-      "label": "Claude 3 Opus",
-      "value": "--opus",
-      "icon": "star"
     },
     {
       "label": "GPT-4o",
