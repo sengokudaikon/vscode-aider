@@ -39,7 +39,7 @@ let aider: AiderInterface | null = null;
 let aiderTerminal: vscode.Terminal | null = null;
 let filesThatAiderKnows = new Set<string>();
 let calculatedWorkingDirectory: string | undefined = undefined;
-let selectedModel: string = '--sonnet'; // Default model
+let selectedModel: string = vscode.workspace.getConfiguration('aider').get('defaultModel', '--sonnet');
 
 async function manageIgnoredFiles() {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
@@ -395,6 +395,15 @@ export function activate(context: vscode.ExtensionContext) {
 
                 selectedModel = selectedModelOption.value;
                 updateStatusBar();
+                
+                const setAsDefault = await vscode.window.showQuickPick(['Yes', 'No'], {
+                    placeHolder: 'Set this as the default model?'
+                });
+
+                if (setAsDefault === 'Yes') {
+                    await setDefaultModel(selectedModel);
+                }
+
                 vscode.window.showInformationMessage(`Aider model set to: ${selectedModelOption.label.replace(/\$\([^)]+\)\s/, '')}.`);
                 
                 // Automatically reopen Aider with the new model
@@ -695,6 +704,14 @@ async function setCustomStartupArgs() {
             vscode.window.showInformationMessage('Please restart Aider for the new startup arguments to take effect.');
         }
     }
+}
+
+async function setDefaultModel(model: string) {
+    const config = vscode.workspace.getConfiguration('aider');
+    await config.update('defaultModel', model, vscode.ConfigurationTarget.Global);
+    selectedModel = model;
+    vscode.window.showInformationMessage(`Default model set to: ${model}`);
+    updateStatusBar();
 }
 
 async function addCustomModel() {

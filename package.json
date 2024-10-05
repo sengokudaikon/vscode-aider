@@ -63,6 +63,11 @@
                     "type": "object",
                     "default": {},
                     "description": "Custom models for Aider. Each key is the model name, and the value is the startup argument."
+                },
+                "aider.defaultModel": {
+                    "type": "string",
+                    "default": "--sonnet",
+                    "description": "The default model to use for Aider."
                 }
             }
         },
