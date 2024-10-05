@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 import { AiderInterface, AiderTerminal } from './AiderTerminal';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as os from 'os';
 import { debounce } from './utils';
 import modelsJson from '../models.json';
 
