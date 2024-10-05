@@ -20,72 +20,6 @@
     "contributes": {
         "commands": [
             {
-                "command": "aider.refactorSnippet",
-                "title": "Refactor with Aider"
-            },
-            {
-                "command": "aider.modifySnippet",
-                "title": "Modify with Aider"
-            },
-            {
-                "command": "aider.fixError",
-                "title": "Fix Error with Aider"
-            }
-        ],
-        "menus": {
-            "view/item/context": [
-                {
-                    "command": "aider.fixError",
-                    "when": "view == problems",
-                    "group": "navigation"
-                }
-            ]
-        },
-        "configuration": {
-            "title": "Aider",
-            "properties": {
-                "aider.ignoreFiles": {
-                    "type": "array",
-                    "default": [],
-                    "items": {
-                        "type": "string"
-                    },
-                    "description": "List of regexes that match filenames that won't automatically be added to the Aider terminal process."
-                },
-                "aider.openaiApiKey": {
-                    "type": "string",
-                    "default": "",
-                    "description": "OpenAI API Key."
-                },
-                "aider.anthropicApiKey": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Anthropic API Key."
-                },
-                "aider.commandLine": {
-                    "type": "string",
-                    "default": "aider",
-                    "description": "Set that command to run aider.  This can be a path to a binary or a command that is available on the path.  You may also include parameters to aider."
-                },
-                "aider.workingDirectory": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Set the working directory for Aider. Leave empty to use the workspace root or the directory of the active file."
-                },
-                "aider.customModels": {
-                    "type": "object",
-                    "default": {},
-                    "description": "Custom models for Aider. Each key is the model name, and the value is the startup argument."
-                },
-                "aider.defaultModel": {
-                    "type": "string",
-                    "default": "",
-                    "description": "The default model to use for Aider. Leave empty to use Aider's default."
-                }
-            }
-        },
-        "commands": [
-            {
                 "command": "aider.add",
                 "title": "Aider: Add File"
             },
@@ -151,6 +85,13 @@
             }
         ],
         "menus": {
+            "view/item/context": [
+                {
+                    "command": "aider.fixError",
+                    "when": "view == problems",
+                    "group": "navigation"
+                }
+            ],
             "editor/context": [
                 {
                     "submenu": "aider.contextMenu",
@@ -195,7 +136,50 @@
                 "id": "aider.contextMenu",
                 "label": "Aider"
             }
-        ]
+        ],
+        "configuration": {
+            "title": "Aider",
+            "properties": {
+                "aider.ignoreFiles": {
+                    "type": "array",
+                    "default": [],
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "List of regexes that match filenames that won't automatically be added to the Aider terminal process."
+                },
+                "aider.openaiApiKey": {
+                    "type": "string",
+                    "default": "",
+                    "description": "OpenAI API Key."
+                },
+                "aider.anthropicApiKey": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Anthropic API Key."
+                },
+                "aider.commandLine": {
+                    "type": "string",
+                    "default": "aider",
+                    "description": "Set that command to run aider.  This can be a path to a binary or a command that is available on the path.  You may also include parameters to aider."
+                },
+                "aider.workingDirectory": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Set the working directory for Aider. Leave empty to use the workspace root or the directory of the active file."
+                },
+                "aider.customModels": {
+                    "type": "object",
+                    "default": {},
+                    "description": "Custom models for Aider. Each key is the model name, and the value is the startup argument."
+                },
+                "aider.defaultModel": {
+                    "type": "string",
+                    "default": "",
+                    "description": "The default model to use for Aider. Leave empty to use Aider's default."
+                }
+            }
+        }
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",
