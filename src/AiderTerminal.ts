@@ -81,8 +81,13 @@ export class AiderTerminal implements AiderInterface {
     }
 
     private formatPath(filePath: string): string {
-        const relativePath = path.relative(this._workingDirectory, filePath);
+        const relativePath = path.relative(this._gitWorkingDirectory || this._workingDirectory, filePath);
         return relativePath.replace(/\\/g, '/');
+    }
+
+    isWorkspaceFile(filePath: string): boolean {
+        const rootDir = this._gitWorkingDirectory || this._workingDirectory;
+        return filePath.startsWith(rootDir);
     }
 
     sendCommand(command: string, paths?: string[]): void {

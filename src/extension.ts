@@ -128,47 +128,60 @@ async function createAider() {
     let aiderCommandLine: string = config.get('commandLine') ?? 'aider';
     let workingDirectory: string | undefined = config.get('workingDirectory');
 
-    findWorkingDirectory(workingDirectory).then((workingDirectory) => {
-        calculatedWorkingDirectory = workingDirectory;
-        let fullCommand = `${aiderCommandLine}`;
-        if (selectedModel.startsWith('custom:')) {
-            const modelName = selectedModel.substring(7);
-            fullCommand += ` ${customModels[modelName]}`;
-        } else if (selectedModel !== 'custom') {
-            fullCommand += ` ${selectedModel}`;
-        }
-        if (customStartupArgs) {
-            fullCommand += ` ${customStartupArgs}`;
-        }
-        fullCommand = fullCommand.trim();
-        aider = new AiderTerminal(openaiApiKey, anthropicApiKey, fullCommand, handleAiderClose, workingDirectory);
-        
-        if (aider) {
-            // Collect all open files from both sources
-            const openFiles = new Set<string>();
-            vscode.workspace.textDocuments.forEach((document) => {
-                if (document.uri.scheme === "file" && document.fileName && aider?.isWorkspaceFile(document.fileName)) {
-                    openFiles.add(document.fileName);
-                }
-            });
-            vscode.window.visibleTextEditors.forEach((editor) => {
-                if (editor.document.uri.scheme === "file" && editor.document.fileName && aider?.isWorkspaceFile(editor.document.fileName)) {
-                    openFiles.add(editor.document.fileName);
-                }
-            });
+    const gitRoot = findGitRoot(workingDirectory || vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '');
+    if (!gitRoot) {
+        vscode.window.showErrorMessage('Unable to find Git root directory. Please ensure you are in a Git repository.');
+        return;
+    }
 
-            // Add all open files to Aider
-            openFiles.forEach((filePath) => {
-                filesThatAiderKnows.add(filePath);
-            });
-            aider.addFiles(Array.from(openFiles));
+    calculatedWorkingDirectory = gitRoot;
+    let fullCommand = `${aiderCommandLine}`;
+    if (selectedModel.startsWith('custom:')) {
+        const modelName = selectedModel.substring(7);
+        fullCommand += ` ${customModels[modelName]}`;
+    } else if (selectedModel !== 'custom') {
+        fullCommand += ` ${selectedModel}`;
+    }
+    if (customStartupArgs) {
+        fullCommand += ` ${customStartupArgs}`;
+    }
+    fullCommand = fullCommand.trim();
+    aider = new AiderTerminal(openaiApiKey, anthropicApiKey, fullCommand, handleAiderClose, gitRoot);
+    
+    if (aider) {
+        // Collect all open files from both sources
+        const openFiles = new Set<string>();
+        vscode.workspace.textDocuments.forEach((document) => {
+            if (document.uri.scheme === "file" && document.fileName && aider?.isWorkspaceFile(document.fileName)) {
+                openFiles.add(document.fileName);
+            }
+        });
+        vscode.window.visibleTextEditors.forEach((editor) => {
+            if (editor.document.uri.scheme === "file" && editor.document.fileName && aider?.isWorkspaceFile(editor.document.fileName)) {
+                openFiles.add(editor.document.fileName);
+            }
+        });
 
-            aider.show();
-            aiderTerminal = (aider as AiderTerminal)._terminal;
+        // Add all open files to Aider
+        openFiles.forEach((filePath) => {
+            filesThatAiderKnows.add(filePath);
+        });
+        aider.addFiles(Array.from(openFiles));
+
+        aider.show();
+        aiderTerminal = (aider as AiderTerminal)._terminal;
+    }
+}
+
+function findGitRoot(startPath: string): string | null {
+    let currentPath = startPath;
+    while (currentPath !== path.parse(currentPath).root) {
+        if (fs.existsSync(path.join(currentPath, '.git'))) {
+            return currentPath;
         }
-    }).catch((err) => {
-        vscode.window.showErrorMessage(`Error starting Aider: ${err}`);
-    });
+        currentPath = path.dirname(currentPath);
+    }
+    return null;
 }
 
 /**
