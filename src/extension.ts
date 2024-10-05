@@ -175,16 +175,6 @@ async function createAider() {
     }
 }
 
-function findGitRoot(startPath: string): string | null {
-    let currentPath = startPath;
-    while (currentPath !== path.parse(currentPath).root) {
-        if (fs.existsSync(path.join(currentPath, '.git'))) {
-            return currentPath;
-        }
-        currentPath = path.dirname(currentPath);
-    }
-    return null;
-}
 
 /**
  * If the Aider terminal is closed, update local variables to reflect the change.
