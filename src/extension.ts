@@ -366,9 +366,11 @@ export function activate(context: vscode.ExtensionContext) {
     let disposable = vscode.commands.registerCommand('aider.selectModel', async () => {
         loadCustomModels();
         const models = [
-            { label: '$(sparkle) Claude 3.5 Sonnet (Default)', value: '--sonnet', description: selectedModel === '--sonnet' ? '(Current)' : '' },
-            { label: '$(star) Claude 3 Opus', value: '--opus', description: selectedModel === '--opus' ? '(Current)' : '' },
-            { label: '$(robot) GPT-4o', value: '--4o', description: selectedModel === '--4o' ? '(Current)' : '' },
+            ...modelsJson.defaultModels.map(model => ({
+                label: `$(${model.icon}) ${model.label}`,
+                value: model.value,
+                description: selectedModel === model.value ? '(Current)' : ''
+            })),
             ...Object.entries(customModels).map(([name, value]) => ({
                 label: `$(gear) ${name}`,
                 value: `custom:${name}`,
