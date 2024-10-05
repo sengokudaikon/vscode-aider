@@ -363,45 +363,49 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('aider.openMenu', showAiderMenu));
 
     let disposable = vscode.commands.registerCommand('aider.selectModel', async () => {
+        loadCustomModels();
         const models = [
             { label: '$(sparkle) Claude 3.5 Sonnet (Default)', value: '--sonnet', description: selectedModel === '--sonnet' ? '(Current)' : '' },
             { label: '$(star) Claude 3 Opus', value: '--opus', description: selectedModel === '--opus' ? '(Current)' : '' },
             { label: '$(robot) GPT-4o', value: '--4o', description: selectedModel === '--4o' ? '(Current)' : '' },
-            { label: '$(gear) Custom (startup argument)', value: 'custom', description: selectedModel === 'custom' ? '(Current)' : '' }
+            ...Object.entries(customModels).map(([name, value]) => ({
+                label: `$(gear) ${name}`,
+                value: `custom:${name}`,
+                description: selectedModel === `custom:${name}` ? '(Current)' : ''
+            })),
+            { label: '$(plus) Add Custom Model', value: 'add_custom' }
         ];
         const selectedModelOption = await vscode.window.showQuickPick(models, {
             placeHolder: 'Select a model for Aider',
         });
 
         if (selectedModelOption) {
-            // Close Aider if it's running
-            if (aider) {
-                aider.dispose();
-                aider = null;
-                filesThatAiderKnows.clear();
-            }
-
-            if (selectedModelOption.value === 'custom') {
-                selectedModel = 'custom';
-                updateStatusBar();
-                vscode.window.showInformationMessage(`Aider model set to: Custom. The model specified in custom startup arguments will be used.`);
+            if (selectedModelOption.value === 'add_custom') {
+                addCustomModel();
             } else {
+                // Close Aider if it's running
+                if (aider) {
+                    aider.dispose();
+                    aider = null;
+                    filesThatAiderKnows.clear();
+                }
+
                 selectedModel = selectedModelOption.value;
                 updateStatusBar();
                 vscode.window.showInformationMessage(`Aider model set to: ${selectedModelOption.label.replace(/\$\([^)]+\)\s/, '')}.`);
+                
+                // Automatically reopen Aider with the new model
+                createAider().then(() => {
+                    if (aider) {
+                        aider.show();
+                        // Force the terminal to appear
+                        vscode.commands.executeCommand('workbench.action.terminal.focus');
+                        vscode.window.showInformationMessage(`Reopen Aider to use the new model.`);
+                    }
+                }).catch((error) => {
+                    vscode.window.showErrorMessage(`Failed to reopen Aider: ${error}`);
+                });
             }
-            
-            // Automatically reopen Aider with the new model
-            createAider().then(() => {
-                if (aider) {
-                    aider.show();
-                    // Force the terminal to appear
-                    vscode.commands.executeCommand('workbench.action.terminal.focus');
-                    vscode.window.showInformationMessage(`Reopen Aider to use the new model.`);
-                }
-            }).catch((error) => {
-                vscode.window.showErrorMessage(`Failed to reopen Aider: ${error}`);
-            });
         }
     });
     context.subscriptions.push(disposable);
