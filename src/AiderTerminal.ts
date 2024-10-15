@@ -18,6 +18,8 @@ export interface AiderInterface {
     dispose(): void;
     onResponse(handler: (response: string) => void): void;
     offResponse(handler: (response: string) => void): void;
+    sendVoiceCommand(): void;
+    sendEnter(): void;
 }
 
 export class AiderTerminal implements AiderInterface {
@@ -195,6 +197,14 @@ export class AiderTerminal implements AiderInterface {
     // You'll need to implement a method to capture terminal output and call the response handlers
     private handleTerminalOutput(output: string): void {
         this.responseHandlers.forEach(handler => handler(output));
+    }
+
+    sendVoiceCommand(): void {
+        this.sendCommand('/voice');
+    }
+
+    sendEnter(): void {
+        this._terminal.sendText('', true);
     }
 }
 

@@ -355,6 +355,7 @@ export function activate(context: vscode.ExtensionContext) {
     updateStatusBar();
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(() => updateStatusBar()));
 
+    registerVoiceCommand(context);
     // Read .aider.ignore file
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     if (workspaceFolder) {
@@ -816,7 +817,11 @@ async function addCustomModel() {
     vscode.window.showInformationMessage(`Custom model "${name}" added successfully.`);
 }
 
-export function deactivate() {}
+export function deactivate() {
+    if (voiceCommandTimeout) {
+        clearTimeout(voiceCommandTimeout);
+    }
+}
 async function showAiderMenu() {
     const items: vscode.QuickPickItem[] = [
         {
@@ -884,4 +889,64 @@ function findGitRoot(startPath: string): string | null {
         currentPath = path.dirname(currentPath);
     }
     return null;
+}
+
+let voiceCommandTimeout: NodeJS.Timeout | null = null;
+
+function registerVoiceCommand(context: vscode.ExtensionContext) {
+    let voiceCommandActive = false;
+
+    const config = vscode.workspace.getConfiguration('aider');
+    const voiceCommandTimeoutDuration = config.get('voiceCommandTimeoutDuration', 250);
+
+    const startVoiceCommand = vscode.commands.registerCommand('aider.startVoiceCommand', () => {
+        if (!aider) {
+            vscode.window.showErrorMessage("Aider is not running. Please run the 'Open Aider' command first.");
+            return;
+        }
+
+        if (!voiceCommandActive) {
+            voiceCommandActive = true;
+            aider.sendVoiceCommand();
+            vscode.window.showInformationMessage("Voice input started. Release the key to stop.");
+        }
+    });
+
+    const endVoiceCommand = vscode.commands.registerCommand('aider.endVoiceCommand', () => {
+        if (voiceCommandActive) {
+            if (voiceCommandTimeout) {
+                clearTimeout(voiceCommandTimeout);
+            }
+
+            voiceCommandTimeout = setTimeout(() => {
+                voiceCommandActive = false;
+                if(aider){
+                    aider.sendEnter();
+                } else {
+                    console.error("aider is null or undefined");
+                    vscode.window.showErrorMessage("Error: aider is not available");
+                }
+                vscode.window.showInformationMessage("Voice input stopped.");
+            }, voiceCommandTimeoutDuration);
+        }
+    });
+
+    context.subscriptions.push(startVoiceCommand, endVoiceCommand);
+
+    const keybinding = config.get('voiceCommandKeybinding', 'ctrl+shift+v');
+
+    context.subscriptions.push(vscode.commands.registerCommand('aider.updateVoiceCommandKeybinding', async () => {
+        const newKeybinding = await vscode.window.showInputBox({
+            prompt: 'Enter new keybinding for Aider voice command',
+            value: keybinding
+        });
+
+        if (newKeybinding) {
+            await config.update('voiceCommandKeybinding', newKeybinding, vscode.ConfigurationTarget.Global);
+            vscode.window.showInformationMessage(`Aider voice command keybinding updated to: ${newKeybinding}`);
+        }
+    }));
+
+    // Update keybinding
+    vscode.commands.executeCommand('setContext', 'aider.voiceCommandKeybinding', keybinding);
 }
