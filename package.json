@@ -3,7 +3,7 @@
   "displayName": "VSCode Aider (Sengoku)",
   "description": "Run Aider directly within VSCode for seamless integration and enhanced workflow.",
   "icon": "images/logo.png",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "publisher": "sengokudaikon",
   "repository": {
     "type": "git",
