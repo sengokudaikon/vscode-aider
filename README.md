@@ -17,6 +17,7 @@ Supercharge your coding experience with the VSCode Aider Extension! This powerfu
 - 🛠️ **Error Fixing**: Right-click on errors to get AI-powered fix suggestions.
 - 🎯 **Default Model Selection**: Set your preferred AI model as the default.
 - 🔌 **Custom Model Integration**: Add and use your own AI models with Aider.
+- 🎙️ **Voice Command**: Use voice input for Aider commands with a single keybind.
 
 ## 🛠️ Requirements
 
@@ -38,6 +39,14 @@ Supercharge your coding experience with the VSCode Aider Extension! This powerfu
 4. **Refactor/Modify Code**: ✨ Select code, right-click, and let Aider work its magic.
 5. **Manage Files**: 📁 Use the explorer context menu to add or ignore files in Aider.
 6. **Generate README**: 📝 Create a stunning project README with "Aider: Generate README.md".
+7. **Use Voice Commands**: 🎙️ Toggle voice input with a custom keybind for hands-free coding assistance.
+
+## 🎙️ Setting Up Voice Commands
+
+1. Open VSCode Settings (File > Preferences > Keyboard Shortcuts).
+2. Search for "Aider: Voice Command".
+3. Assign your preferred keybinding (e.g., Ctrl+Shift+V).
+4. Press the assigned key once to activate voice input, press it again to send the command to Aider.
 
 ## 🐛 Known Issues
 

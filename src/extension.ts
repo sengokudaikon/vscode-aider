@@ -348,14 +348,12 @@ function updateStatusBar() {
     statusBarItem.tooltip = 'Click to open Aider management menu';
     statusBarItem.show();
 }
-
+let voiceCommandKeyPressed: boolean = false;
 export function activate(context: vscode.ExtensionContext) {
     statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
     context.subscriptions.push(statusBarItem);
     updateStatusBar();
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(() => updateStatusBar()));
-
-    registerVoiceCommand(context);
     // Read .aider.ignore file
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     if (workspaceFolder) {
@@ -634,7 +632,44 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Listen for changes in diagnostics
     context.subscriptions.push(vscode.languages.onDidChangeDiagnostics(onDidChangeDiagnostics));
+    // Listen for voice input
+    const voiceCommandDisposable = vscode.commands.registerCommand('aider.voiceCommand', () => {
+        if (aider) {
+            aider.toggleVoiceCommand(voiceCommandKeyPressed);
+            setTimeout(() => {
+                if (aider) {
+                    aider.toggleVoiceCommand(false);
+                }
+            }, 100);
+        }
+    });
+    context.subscriptions.push(voiceCommandDisposable);
+    const keyDownDisposable = vscode.commands.registerCommand('type', (args) => {
+        const voiceCommandKey = vscode.workspace.getConfiguration('aider').get('voiceCommand');
+        if (args.text === voiceCommandKey) {
+            voiceCommandKeyPressed = true;
+            if (aider) {
+                aider.toggleVoiceCommand(voiceCommandKeyPressed);
+                vscode.window.showInformationMessage("Voice input started. Release the key to stop.");
+            }
+        }
+    });
 
+    const keyUpDisposable = vscode.commands.registerCommand('type', (args) => {
+        const voiceCommandKey = vscode.workspace.getConfiguration('aider').get('voiceCommand');
+        if (args.text === voiceCommandKey && voiceCommandKeyPressed) {
+            voiceCommandKeyPressed = false;
+            if (aider) {
+                aider.toggleVoiceCommand(voiceCommandKeyPressed);
+                vscode.window.showInformationMessage("Voice input stopped.");
+            }
+        }
+    });
+    context.subscriptions.push(keyDownDisposable, keyUpDisposable);
+    context.subscriptions.push(vscode.Disposable.from({
+        dispose: () => updateVoiceCommand(context)
+    }));
+    updateVoiceCommand(context);
     // Register a code action provider
 class AiderCodeActionProvider implements vscode.CodeActionProvider {
     provideCodeActions(document: vscode.TextDocument, range: vscode.Range | vscode.Selection, context: vscode.CodeActionContext, token: vscode.CancellationToken): vscode.ProviderResult<(vscode.Command | vscode.CodeAction)[]> {
@@ -818,8 +853,8 @@ async function addCustomModel() {
 }
 
 export function deactivate() {
-    if (voiceCommandTimeout) {
-        clearTimeout(voiceCommandTimeout);
+    if (aider && aider.voiceCommandTimeout) {
+        clearTimeout(aider.voiceCommandTimeout);
     }
 }
 async function showAiderMenu() {
@@ -893,47 +928,9 @@ function findGitRoot(startPath: string): string | null {
 
 let voiceCommandTimeout: NodeJS.Timeout | null = null;
 
-function registerVoiceCommand(context: vscode.ExtensionContext) {
-    let voiceCommandActive = false;
-
+function updateVoiceCommand(context: vscode.ExtensionContext) {
     const config = vscode.workspace.getConfiguration('aider');
-    const voiceCommandTimeoutDuration = config.get('voiceCommandTimeoutDuration', 250);
-
-    const startVoiceCommand = vscode.commands.registerCommand('aider.startVoiceCommand', () => {
-        if (!aider) {
-            vscode.window.showErrorMessage("Aider is not running. Please run the 'Open Aider' command first.");
-            return;
-        }
-
-        if (!voiceCommandActive) {
-            voiceCommandActive = true;
-            aider.sendVoiceCommand();
-            vscode.window.showInformationMessage("Voice input started. Release the key to stop.");
-        }
-    });
-
-    const endVoiceCommand = vscode.commands.registerCommand('aider.endVoiceCommand', () => {
-        if (voiceCommandActive) {
-            if (voiceCommandTimeout) {
-                clearTimeout(voiceCommandTimeout);
-            }
-
-            voiceCommandTimeout = setTimeout(() => {
-                voiceCommandActive = false;
-                if(aider){
-                    aider.sendEnter();
-                } else {
-                    console.error("aider is null or undefined");
-                    vscode.window.showErrorMessage("Error: aider is not available");
-                }
-                vscode.window.showInformationMessage("Voice input stopped.");
-            }, voiceCommandTimeoutDuration);
-        }
-    });
-
-    context.subscriptions.push(startVoiceCommand, endVoiceCommand);
-
-    const keybinding = config.get('voiceCommandKeybinding', 'ctrl+shift+v');
+    const keybinding = config.get('voiceCommand', 'ctrl+shift+v');
 
     context.subscriptions.push(vscode.commands.registerCommand('aider.updateVoiceCommandKeybinding', async () => {
         const newKeybinding = await vscode.window.showInputBox({
@@ -942,7 +939,7 @@ function registerVoiceCommand(context: vscode.ExtensionContext) {
         });
 
         if (newKeybinding) {
-            await config.update('voiceCommandKeybinding', newKeybinding, vscode.ConfigurationTarget.Global);
+            await config.update('voiceCommandKey', newKeybinding, vscode.ConfigurationTarget.Global);
             vscode.window.showInformationMessage(`Aider voice command keybinding updated to: ${newKeybinding}`);
         }
     }));

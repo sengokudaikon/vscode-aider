@@ -3,11 +3,11 @@
     "displayName": "VSCode Aider",
     "description": "Run Aider directly within VSCode for seamless integration and enhanced workflow.",
     "icon": "images/logo.png",
-    "version": "1.0.5",
-    "publisher": "Apertia",
+    "version": "1.0.6",
+    "publisher": "sengokudaikon",
     "repository": {
         "type": "git",
-        "url": "https://gitlab.apertia.cz/filip.koch/vscode-aider.git"
+        "url": "https://github.com/sengokudaikon/vscode-aider"
     },
     "engines": {
         "vscode": "^1.50.0"
@@ -85,12 +85,12 @@
                 "title": "Aider: Fix Error"
             },
             {
-                "command": "aider.startVoiceCommand",
-                "title": "Aider: Start Voice Command"
+                "command": "aider.voiceCommand",
+                "title": "Aider: Voice Command"
             },
             {
-                "command": "aider.endVoiceCommand",
-                "title": "Aider: End Voice Command"
+                "command": "aider.updateVoiceCommandKeybinding",
+                "title": "Aider: Update Voice Command Keybinding"
             }
         ],
         "menus": {
@@ -149,11 +149,6 @@
         "configuration": {
             "title": "Aider",
             "properties": {
-                "aider.voiceCommandTimeoutDuration": {
-                    "type": "number",
-                    "default": 250,
-                    "description": "Duration (in milliseconds) to wait after key release before stopping voice input"
-                },
                 "aider.ignoreFiles": {
                     "type": "array",
                     "default": [],
@@ -193,22 +188,7 @@
                     "description": "The default model to use for Aider. Leave empty to use Aider's default."
                 }
             }
-        },
-        "keybindings": [
-            {
-                "command": "aider.startVoiceCommand",
-                "key": "ctrl+shift+v",
-                "mac": "cmd+shift+v",
-                "when": "editorTextFocus"
-            },
-            {
-                "command": "aider.endVoiceCommand",
-                "key": "ctrl+shift+v",
-                "mac": "cmd+shift+v",
-                "when": "editorTextFocus",
-                "args": "up"
-            }
-        ]
+        }
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",

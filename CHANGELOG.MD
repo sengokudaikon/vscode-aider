@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file. Let's celebrate our progress! 🎉
 
+## [1.0.6] - 2024-10-15
+### 🌟 Added
+- 🛠️ New feature to use speech keybind to '/voice' to aider
+
 ## [1.0.5] - 2024-10-05
 
 ### 🌟 Added

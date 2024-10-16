@@ -2,24 +2,36 @@ import * as vscode from 'vscode';
 import * as os from 'os';
 import * as path from 'path';
 import * as fs from 'fs';
-import * as child_process from 'child_process';
 
 export interface AiderInterface {
+    voiceCommandTimeout: NodeJS.Timeout | null;
     addFile(filePath: string): void;
+
     addFiles(filePaths: string[]): void;
+
     dropFile(filePath: string): void;
+
     dropFiles(filePaths: string[]): void;
+
     addReadOnlyFile(filePath: string): void;
+
     addReadOnlyFiles(filePaths: string[]): void;
+
     sendCommand(command: string, paths?: string[]): void;
+
     isWorkspaceFile(filePath: string): boolean;
+
     isActive(): boolean;
+
     show(): void;
+
     dispose(): void;
+
     onResponse(handler: (response: string) => void): void;
+
     offResponse(handler: (response: string) => void): void;
-    sendVoiceCommand(): void;
-    sendEnter(): void;
+
+    toggleVoiceCommand(isKeyDown: boolean): void;
 }
 
 export class AiderTerminal implements AiderInterface {
@@ -29,6 +41,23 @@ export class AiderTerminal implements AiderInterface {
     _onDidCloseTerminal: () => void;
     _isActive: boolean = true;
     private responseHandlers: ((response: string) => void)[] = [];
+    private voiceCommandActive: boolean = false;
+    voiceCommandTimeout: NodeJS.Timeout | null = null;
+    toggleVoiceCommand(isKeyDown: boolean) {
+        if (isKeyDown && !this.voiceCommandActive) {
+            this.sendCommand('/voice');
+            this.voiceCommandActive = true;
+        } else if (!isKeyDown && this.voiceCommandActive) {
+            if (this.voiceCommandTimeout) {
+                clearTimeout(this.voiceCommandTimeout);
+            }
+            this.voiceCommandTimeout = setTimeout(() => {
+                this.sendEnter();
+                this.voiceCommandActive = false;
+                this.voiceCommandTimeout = null;
+            }, 500);
+        }
+    }
 
     constructor(openaiAPIKey: string | null | undefined, anthropicAPIKey: string | null | undefined, aiderCommand: string, onDidCloseTerminal: () => void, workingDirectory: string) {
         this._workingDirectory = this.findProjectRoot(workingDirectory);
@@ -105,10 +134,10 @@ export class AiderTerminal implements AiderInterface {
         } else {
             fullCommand = command;
         }
-        
+
         // Remove all whitespace, line breaks, and symbols that might cause breaks
         fullCommand = fullCommand.replace(/\s+/g, ' ').trim();
-        
+
         this._terminal.sendText(fullCommand, true);
     }
 
@@ -142,7 +171,7 @@ export class AiderTerminal implements AiderInterface {
         }
     }
 
-    dispose() : void {
+    dispose(): void {
         if (this._isActive) {
             this._terminal.sendText(this.formatCommand("/exit"));
             this._terminal.dispose();
@@ -173,7 +202,7 @@ export class AiderTerminal implements AiderInterface {
     private findProjectRoot(startPath: string): string {
         let currentPath = startPath;
         while (currentPath !== path.parse(currentPath).root) {
-            if (fs.existsSync(path.join(currentPath, 'package.json')) || 
+            if (fs.existsSync(path.join(currentPath, 'package.json')) ||
                 fs.existsSync(path.join(currentPath, '.git'))) {
                 return currentPath;
             }
