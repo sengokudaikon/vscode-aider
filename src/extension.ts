@@ -239,11 +239,11 @@ async function createAider() {
     }
     const cachePrompts = config.get<boolean>('useCachePrompts', false)
     if (cachePrompts && !fullCommand.includes('--cache-prompts')) {
-        fullCommand += '--cache-prompts'
+        fullCommand += ' --cache-prompts'
     }
     const yesAlways = config.get<boolean>('yesAlways', false)
     if (yesAlways && !fullCommand.includes('--yes-always')) {
-        fullCommand += '--yes-always'
+        fullCommand += ' --yes-always'
     }
     const provider = config.get<string>('provider', 'Default');
     let env: { [key: string]: string } = {};
@@ -278,7 +278,7 @@ async function createAider() {
         }
         const defaultWeakModel: string|undefined = config.get<string>('defaultWeakModel');
         if (!fullCommand.includes('--weak-model') && provider !== 'Default') {
-            fullCommand += `--weak-model ${prefix}/${defaultWeakModel}`
+            fullCommand += ` --weak-model ${prefix}/${defaultWeakModel}`
         }
     }
 
@@ -470,6 +470,15 @@ function updateStatusBar() {
                 break;
             case '--opus':
                 modelName = 'Claude 3 Opus';
+                break;
+            case '--o1-preview':
+                modelName = 'GPT o1-preview';
+                break;
+            case '--o1-mini':
+                modelName = 'GPT o1-mini';
+                break;
+            case '--4o-mini':
+                modelName = 'GPT 4o-mini';
                 break;
             default:
                 modelName = 'Unknown';
