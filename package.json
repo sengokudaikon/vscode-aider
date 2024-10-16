@@ -1,8 +1,8 @@
 {
-    "name": "vscode-aider",
-    "displayName": "VSCode Aider",
+    "name": "vscode-aider-sengoku",
+    "displayName": "VSCode Aider (Sengoku)",
     "description": "Run Aider directly within VSCode for seamless integration and enhanced workflow.",
-    "icon": "images/logo.png",
+    "icon": "images/logo.jpg",
     "version": "1.0.6",
     "publisher": "sengokudaikon",
     "repository": {
