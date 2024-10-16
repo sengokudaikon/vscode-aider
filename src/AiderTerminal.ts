@@ -223,7 +223,13 @@ export class AiderTerminal implements AiderInterface {
     }
 
     sendEnter(): void {
-        this._terminal.sendText('', true);
+        if (os.platform() === 'win32') {                                                                          
+            // For Windows, send a carriage return without a newline                                              
+            this._terminal.sendText('\r', false);                                                                 
+        } else {                                                                                                  
+            // For macOS and Linux, send an empty string with a newline                                           
+            this._terminal.sendText('', true);                                                                    
+        }   
     }
 }
 
