@@ -194,6 +194,8 @@ async function setupEnvironmentAndModelPrefix(provider: string): Promise<{env: {
  * Create the Aider interface (currently a terminal) and start it.
  */
 async function createAider() {
+    let env: { [key: string]: string } = {};
+    let prefix:string= '';
     if (aider && aider.isActive()) {
         // Close the existing Aider instance
         aider.dispose();
@@ -246,8 +248,7 @@ async function createAider() {
         fullCommand += ' --yes-always'
     }
     const provider = config.get<string>('provider', 'Default');
-    let env: { [key: string]: string } = {};
-    let prefix:string= '';
+
     const defaultModel: string | undefined = config.get<string>('defaultModel');
     if (selectedModel && !defaultModel) {
         if (selectedModel.startsWith('custom:')) {
@@ -279,6 +280,18 @@ async function createAider() {
         const defaultWeakModel: string|undefined = config.get<string>('defaultWeakModel');
         if (!fullCommand.includes('--weak-model') && provider !== 'Default') {
             fullCommand += ` --weak-model ${prefix}/${defaultWeakModel}`
+        }
+    }
+
+    const useVoiceCommands = config.get('useVoiceCommands', false);
+
+    if (useVoiceCommands) {
+        // Include OpenAI API key for voice commands
+        const openAiApiKey = config.get('openai.apiKey', '');
+        if (openAiApiKey) {
+            env['OPENAI_API_KEY'] = openAiApiKey;
+        } else {
+            vscode.window.showWarningMessage('Voice commands are enabled, but OpenAI API key is not set. Please set the API key in the Aider settings.');
         }
     }
 
@@ -434,7 +447,7 @@ function findGitDirectoryInSelfOrParents(filePath: string): string {
  * API key.
  */
 vscode.workspace.onDidChangeConfiguration((e) => {
-    if (e.affectsConfiguration('aider.openaiApiKey') || e.affectsConfiguration('aider.anthropicApiKey') || e.affectsConfiguration('aider.provider')) {
+    if (e.affectsConfiguration('aider.openai.apiKey') || e.affectsConfiguration('aider.anthropic.apiKey') || e.affectsConfiguration('aider.provider') || e.affectsConfiguration('aider.useVoiceCommands')) {
         // Stop the Aider terminal
         if (aider) {
             aider.dispose();
@@ -776,8 +789,16 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.languages.onDidChangeDiagnostics(onDidChangeDiagnostics));
     // Listen for voice input
     const voiceCommandDisposable = vscode.commands.registerCommand('aider.voiceCommand', () => {
-        if (aider) {
-            aider.toggleVoiceCommand(voiceCommandKeyPressed);
+        const useVoiceCommands = vscode.workspace.getConfiguration('aider').get('useVoiceCommands', false);
+
+        if (useVoiceCommands) {
+            if (aider) {
+                aider.toggleVoiceCommand(voiceCommandKeyPressed);
+            } else {
+                vscode.window.showInformationMessage('Aider is not active. Please start Aider before using voice commands.');
+            }
+        } else {
+            vscode.window.showInformationMessage('Voice commands are not enabled. Please enable them in Aider settings to use this feature.');
         }
     });
     context.subscriptions.push(voiceCommandDisposable);

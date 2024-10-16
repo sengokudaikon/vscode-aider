@@ -43,10 +43,12 @@ Supercharge your coding experience with the VSCode Aider Extension! This powerfu
 
 ## 🎙️ Setting Up Voice Commands
 
-1. Open VSCode Settings (File > Preferences > Keyboard Shortcuts).
-2. Search for "Aider: Voice Command".
-3. Assign your preferred keybinding (e.g., Ctrl+Shift+V).
-4. Press the assigned key once to activate voice input, release it to send the command to Aider.
+1. Open VSCode Settings (File > Preferences > Settings).
+2. Search for "Aider: Use Voice Commands" and check the box to enable the feature.
+3. Ensure you have set up your OpenAI API key in the Aider settings.
+4. Open VSCode Settings (File > Preferences > Keyboard Shortcuts).
+5. Search for "Aider: Voice Command".
+6. Assign your preferred keybinding (e.g., Ctrl+Shift+V).
 
 ## 🐛 Known Issues
 

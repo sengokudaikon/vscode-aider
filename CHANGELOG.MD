@@ -1,6 +1,9 @@
 # 🚀 ChangeLog
 
 All notable changes to this project will be documented in this file. Let's celebrate our progress! 🎉
+## [1.1.2] - 2024-10-16
+### 🔧 Changed
+- ⚙️ Allows opt-out for voice commands
 ## [1.1.0] - 2024-10-16
 ### 🌟 Added
 - 🚀 Architect mode

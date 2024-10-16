@@ -3,7 +3,7 @@
   "displayName": "VSCode Aider (Sengoku)",
   "description": "Run Aider directly within VSCode for seamless integration and enhanced workflow.",
   "icon": "images/logo.png",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "publisher": "sengokudaikon",
   "repository": {
     "type": "git",
@@ -172,6 +172,11 @@
           ],
           "default": "Default",
           "description": "Select the AI provider for Aider"
+        },
+        "aider.useVoiceCommands": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable voice commands (requires OpenAI API key)"
         },
         "aider.commandLine": {
           "type": "string",
