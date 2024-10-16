@@ -59,22 +59,13 @@ export class AiderTerminal implements AiderInterface {
         }
     }
 
-    constructor(openaiAPIKey: string | null | undefined, anthropicAPIKey: string | null | undefined, aiderCommand: string, onDidCloseTerminal: () => void, workingDirectory: string) {
+    constructor(env: { [key: string]: string }, aiderCommand: string, onDidCloseTerminal: () => void, workingDirectory: string) {
         this._workingDirectory = this.findProjectRoot(workingDirectory);
         this._gitWorkingDirectory = this.findGitWorkingDirectory(this._workingDirectory);
-
         let opts: vscode.TerminalOptions = {
             'name': "Aider",
             'cwd': this._workingDirectory,
         };
-
-        let env: { [key: string]: string } = {};
-        if (openaiAPIKey) {
-            env["OPENAI_API_KEY"] = openaiAPIKey;
-        }
-        if (anthropicAPIKey) {
-            env["ANTHROPIC_API_KEY"] = anthropicAPIKey;
-        }
 
         if (Object.keys(env).length > 0) {
             opts['env'] = env;
@@ -104,7 +95,6 @@ export class AiderTerminal implements AiderInterface {
         this._terminal.show();
         this._terminal.sendText(aiderCommand);
     }
-
     private getRelativeDirectory(filePath: string) {
         if (!this._workingDirectory) {
             return filePath;

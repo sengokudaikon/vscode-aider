@@ -1,207 +1,333 @@
 {
-    "name": "vscode-aider-sengoku",
-    "displayName": "VSCode Aider (Sengoku)",
-    "description": "Run Aider directly within VSCode for seamless integration and enhanced workflow.",
-    "icon": "images/logo.png",
-    "version": "1.0.6",
-    "publisher": "sengokudaikon",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/sengokudaikon/vscode-aider"
-    },
-    "engines": {
-        "vscode": "^1.50.0"
-    },
-    "categories": [
-        "AI"
+  "name": "vscode-aider-sengoku",
+  "displayName": "VSCode Aider (Sengoku)",
+  "description": "Run Aider directly within VSCode for seamless integration and enhanced workflow.",
+  "icon": "images/logo.png",
+  "version": "1.1.0",
+  "publisher": "sengokudaikon",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sengokudaikon/vscode-aider"
+  },
+  "engines": {
+    "vscode": "^1.50.0"
+  },
+  "categories": [
+    "AI"
+  ],
+  "keywords": [
+    "aider",
+    "openai",
+    "ai",
+    "artificial intelligence",
+    "assistant",
+    "code",
+    "editor"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "aider.add",
+        "title": "Aider: Add File"
+      },
+      {
+        "command": "aider.drop",
+        "title": "Aider: Drop File"
+      },
+      {
+        "command": "aider.syncFiles",
+        "title": "Aider: Sync Open Files"
+      },
+      {
+        "command": "aider.debugInfo",
+        "title": "Aider: Show Debug Info"
+      },
+      {
+        "command": "aider.open",
+        "title": "Aider: Open"
+      },
+      {
+        "command": "aider.close",
+        "title": "Aider: Close"
+      },
+      {
+        "command": "aider.selectModel",
+        "title": "Aider: Select Model"
+      },
+      {
+        "command": "aider.generateReadme",
+        "title": "Aider: Generate README.md"
+      },
+      {
+        "command": "aider.refactorSnippet",
+        "title": "Aider: Refactor Selected Code"
+      },
+      {
+        "command": "aider.modifySnippet",
+        "title": "Aider: Modify Selected Code"
+      },
+      {
+        "command": "aider.openMenu",
+        "title": "Aider: Open Menu"
+      },
+      {
+        "command": "aider.addFileToAider",
+        "title": "Aider: Add to Aider"
+      },
+      {
+        "command": "aider.setStartupArgs",
+        "title": "Aider: Set Startup Arguments"
+      },
+      {
+        "command": "aider.ignoreFile",
+        "title": "Aider: Ignore this file"
+      },
+      {
+        "command": "aider.addReadOnlyFileToAider",
+        "title": "Aider: Add to Aider as Read-Only"
+      },
+      {
+        "command": "aider.fixError",
+        "title": "Aider: Fix Error"
+      },
+      {
+        "command": "aider.voiceCommand",
+        "title": "Aider: Voice Command"
+      }
     ],
-    "keywords": ["aider", "openai", "ai", "artificial intelligence", "assistant", "code", "editor"],
-    "activationEvents": [],
-    "main": "./out/extension.js",
-    "contributes": {
-        "commands": [
-            {
-                "command": "aider.add",
-                "title": "Aider: Add File"
-            },
-            {
-                "command": "aider.drop",
-                "title": "Aider: Drop File"
-            },
-            {
-                "command": "aider.syncFiles",
-                "title": "Aider: Sync Open Files"
-            },
-            {
-                "command": "aider.debugInfo",
-                "title": "Aider: Show Debug Info"
-            },
-            {
-                "command": "aider.open",
-                "title": "Aider: Open"
-            },
-            {
-                "command": "aider.close",
-                "title": "Aider: Close"
-            },
-            {
-                "command": "aider.selectModel",
-                "title": "Aider: Select Model"
-            },
-            {
-                "command": "aider.generateReadme",
-                "title": "Aider: Generate README.md"
-            },
-            {
-                "command": "aider.refactorSnippet",
-                "title": "Aider: Refactor Selected Code"
-            },
-            {
-                "command": "aider.modifySnippet",
-                "title": "Aider: Modify Selected Code"
-            },
-            {
-                "command": "aider.openMenu",
-                "title": "Aider: Open Menu"
-            },
-            {
-                "command": "aider.addFileToAider",
-                "title": "Aider: Add to Aider"
-            },
-            {
-                "command": "aider.setStartupArgs",
-                "title": "Aider: Set Startup Arguments"
-            },
-            {
-                "command": "aider.ignoreFile",
-                "title": "Aider: Ignore this file"
-            },
-            {
-                "command": "aider.addReadOnlyFileToAider",
-                "title": "Aider: Add to Aider as Read-Only"
-            },
-            {
-                "command": "aider.fixError",
-                "title": "Aider: Fix Error"
-            },
-            {
-                "command": "aider.voiceCommand",
-                "title": "Aider: Voice Command"
-            }
-        ],
-        "menus": {
-            "view/item/context": [
-                {
-                    "command": "aider.fixError",
-                    "when": "view == problems",
-                    "group": "navigation"
-                }
-            ],
-            "editor/context": [
-                {
-                    "submenu": "aider.contextMenu",
-                    "group": "aider"
-                }
-            ],
-            "aider.contextMenu": [
-                {
-                    "command": "aider.refactorSnippet",
-                    "group": "aider@1"
-                },
-                {
-                    "command": "aider.modifySnippet",
-                    "group": "aider@2"
-                },
-                {
-                    "command": "aider.fixError",
-                    "group": "aider@3",
-                    "when": "editorHasSelection"
-                }
-            ],
-            "explorer/context": [
-                {
-                    "command": "aider.addFileToAider",
-                    "group": "aider@1",
-                    "when": "resourceScheme == file"
-                },
-                {
-                    "command": "aider.addReadOnlyFileToAider",
-                    "group": "aider@2",
-                    "when": "resourceScheme == file"
-                },
-                {
-                    "command": "aider.ignoreFile",
-                    "group": "aider@3",
-                    "when": "resourceScheme == file"
-                }
-            ]
-        },
-        "submenus": [
-            {
-                "id": "aider.contextMenu",
-                "label": "Aider"
-            }
-        ],
-        "configuration": {
-            "title": "Aider",
-            "properties": {
-                "aider.ignoreFiles": {
-                    "type": "array",
-                    "default": [],
-                    "items": {
-                        "type": "string"
-                    },
-                    "description": "List of regexes that match filenames that won't automatically be added to the Aider terminal process."
-                },
-                "aider.openaiApiKey": {
-                    "type": "string",
-                    "default": "",
-                    "description": "OpenAI API Key."
-                },
-                "aider.anthropicApiKey": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Anthropic API Key."
-                },
-                "aider.commandLine": {
-                    "type": "string",
-                    "default": "aider",
-                    "description": "Set that command to run aider.  This can be a path to a binary or a command that is available on the path.  You may also include parameters to aider."
-                },
-                "aider.workingDirectory": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Set the working directory for Aider. Leave empty to use the workspace root or the directory of the active file."
-                },
-                "aider.customModels": {
-                    "type": "object",
-                    "default": {},
-                    "description": "Custom models for Aider. Each key is the model name, and the value is the startup argument."
-                },
-                "aider.defaultModel": {
-                    "type": "string",
-                    "default": "",
-                    "description": "The default model to use for Aider. Leave empty to use Aider's default."
-                }
-            }
+    "menus": {
+      "view/item/context": [
+        {
+          "command": "aider.fixError",
+          "when": "view == problems",
+          "group": "navigation"
         }
+      ],
+      "editor/context": [
+        {
+          "submenu": "aider.contextMenu",
+          "group": "aider"
+        }
+      ],
+      "aider.contextMenu": [
+        {
+          "command": "aider.refactorSnippet",
+          "group": "aider@1"
+        },
+        {
+          "command": "aider.modifySnippet",
+          "group": "aider@2"
+        },
+        {
+          "command": "aider.fixError",
+          "group": "aider@3",
+          "when": "editorHasSelection"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "aider.addFileToAider",
+          "group": "aider@1",
+          "when": "resourceScheme == file"
+        },
+        {
+          "command": "aider.addReadOnlyFileToAider",
+          "group": "aider@2",
+          "when": "resourceScheme == file"
+        },
+        {
+          "command": "aider.ignoreFile",
+          "group": "aider@3",
+          "when": "resourceScheme == file"
+        }
+      ]
     },
-    "scripts": {
-        "vscode:prepublish": "npm run compile",
-        "compile": "tsc -p ./",
-        "watch": "tsc -watch -p ./",
-        "postinstall": "node ./node_modules/vscode/bin/install",
-        "test": "npm run compile && node ./node_modules/vscode/bin/test",
-        "build": "vsce package"
-    },
-    "devDependencies": {
-        "@types/jest": "^29.5.10",
-        "@types/node": "20.10.0",
-        "jest": "^29.7.0",
-        "ts-jest": "^29.1.1",
-        "ts-node": "^10.9.1",
-        "tslint": "5.20.1",
-        "typescript": "5.3.2",
-        "vscode": "1.1.37"
+    "submenus": [
+      {
+        "id": "aider.contextMenu",
+        "label": "Aider"
+      }
+    ],
+    "configuration": {
+      "title": "Aider",
+      "properties": {
+        "aider.provider": {
+          "type": "string",
+          "enum": [
+            "Default",
+            "OpenAI",
+            "Anthropic",
+            "Gemini",
+            "GROQ",
+            "Azure",
+            "Cohere",
+            "DeepSeek",
+            "Ollama",
+            "OpenRouter",
+            "Vertex",
+            "Bedrock",
+            "OpenAI Compatible"
+          ],
+          "default": "Default",
+          "description": "Select the AI provider for Aider"
+        },
+        "aider.commandLine": {
+          "type": "string",
+          "default": "aider",
+          "description": "Set that command to run aider.  This can be a path to a binary or a command that is available on the path.  You may also include parameters to aider."
+        },
+        "aider.workingDirectory": {
+          "type": "string",
+          "default": "",
+          "description": "Set the working directory for Aider. Leave empty to use the workspace root or the directory of the active file."
+        },
+        "aider.yesAlways": {
+          "type": "boolean",
+          "default": true,
+          "description": "Respond yes to all prompts by default"
+        },
+        "aider.useArchitect": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use Architect model by default"
+        },
+        "aider.useCachePrompts": {
+          "type": "boolean",
+          "default": false,
+          "description": "Cache prompts by default, if available in provider"
+        },
+        "aider.defaultModel": {
+          "type": "string",
+          "default": "",
+          "description": "Default model for aider '--model' to use (e.g., 'gpt-o1-preview'). Leave empty to use Aider's default."
+        },
+        "aider.defaultEditorModel": {
+          "type": "string",
+          "default": "",
+          "description": "Default --editor-model to use (e.g., 'claude-3.5-sonnet'). Leave empty to use Aider's default."
+        },
+        "aider.defaultWeakModel": {
+          "type": "string",
+          "default": "",
+          "description": "Default --weak-model to use (e.g., 'gpt-4o-mini'). Leave empty to use Aider's default."
+        },
+        "aider.ignoreFiles": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "description": "List of regexes that match filenames that won't automatically be added to the Aider terminal process."
+        },
+        "aider.customModels": {
+          "type": "object",
+          "default": {},
+          "description": "Custom models for Aider. Each key is the model name, and the value is the startup argument."
+        },
+        "aider.openai.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "OpenAI API Key.",
+          "when": "config.aider.provider == 'Default' || config.aider.provider == 'OpenAI' || config.aider.provider == 'OpenAI Compatible'"
+        },
+        "aider.openai.baseUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Base URL for OpenAI-Compatible provider",
+          "when": "config.aider.provider == 'OpenAI Compatible'"
+        },
+        "aider.anthropic.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Anthropic API Key.",
+          "when": "config.aider.provider == 'Default' || config.aider.provider == 'Anthropic'"
+        },
+        "aider.gemini.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for Gemini",
+          "when": "config.aider.provider == 'Gemini'"
+        },
+        "aider.groq.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for GROQ",
+          "when": "config.aider.provider == 'GROQ'"
+        },
+        "aider.azure.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for Azure",
+          "when": "config.aider.provider == 'Azure'"
+        },
+        "aider.azure.baseUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Base url for your Azure AI provider",
+          "when": "config.aider.provider == 'Azure'"
+        },
+        "aider.azure.apiVersion": {
+          "type": "string",
+          "default": "2024-06-01-preview",
+          "when": "config.aider.provider == 'Azure'"
+        },
+        "aider.cohere.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for Cohere",
+          "when": "config.aider.provider == 'Cohere'"
+        },
+        "aider.deepSeek.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for DeepSeek",
+          "when": "config.aider.provider == 'DeepSeek'"
+        },
+        "aider.openRouter.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for OpenRouter",
+          "when": "config.aider.provider == 'OpenRouter'"
+        },
+        "aider.vertex.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for Vertex",
+          "when": "config.aider.provider == 'Vertex'"
+        },
+        "aider.bedrock.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for Bedrock",
+          "when": "config.aider.provider == 'Bedrock'"
+        },
+        "aider.ollama.baseUrl": {
+          "type": "string",
+          "default": "localhost:11434",
+          "description": "Base URL for Ollama",
+          "when": "config.aider.provider == 'Ollama'"
+        }
+      }
     }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test": "npm run compile && node ./node_modules/vscode/bin/test",
+    "build": "vsce package"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.10",
+    "@types/node": "20.10.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.1",
+    "tslint": "5.20.1",
+    "typescript": "5.3.2",
+    "vscode": "1.1.37"
+  }
 }

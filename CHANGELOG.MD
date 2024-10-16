@@ -1,7 +1,15 @@
 # 🚀 ChangeLog
 
 All notable changes to this project will be documented in this file. Let's celebrate our progress! 🎉
-
+## [1.1.0] - 2024-10-16
+### 🌟 Added
+- 🚀 Architect mode
+### 🔧 Changed
+- 🤖 Now allows selection of a provider with appropriate config
+- ⚙️ Now able to select specific model from provider, weak model for small tasks, editor model for architect mode
+- ⚙️ Now able to cache prompts, if provider allows it 
+### Breaking changes
+- ⚙️ Configuration now requires key setup based on the selected provider
 ## [1.0.6] - 2024-10-15
 ### 🌟 Added
 - 🛠️ New feature to use speech keybind to '/voice' to aider

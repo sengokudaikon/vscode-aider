@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
-import { AiderInterface, AiderTerminal } from './AiderTerminal';
+import {AiderInterface, AiderTerminal} from './AiderTerminal';
 import * as fs from 'fs';
 import * as path from 'path';
-import { debounce } from './utils';
+import {debounce} from './utils';
 import modelsJson from '../models.json';
 
 let ignoredFiles: string[] = [];
@@ -11,6 +11,7 @@ let diagnosticsMap: Map<string, vscode.Diagnostic[]> = new Map();
 
 let customStartupArgs: string = '';
 let customModels: { [key: string]: string } = {};
+
 async function updateAiderIgnoreFile(newPattern: string) {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     if (!workspaceFolder) {
@@ -93,7 +94,101 @@ async function manageIgnoredFiles() {
         }
     }
 }
+
 let statusBarItem: vscode.StatusBarItem;
+async function getProviderApiKey(provider: string): Promise<{ keyValue: string; keyName: string; modelPrefix: string } | null> {
+    const config = vscode.workspace.getConfiguration('aider');
+    switch (provider) {
+        case 'OpenAI':
+            return { keyName: 'OPENAI_API_KEY', keyValue: config.get('openai.apiKey', ''), modelPrefix: 'openai' };
+        case 'Anthropic':
+            return { keyName: 'ANTHROPIC_API_KEY', keyValue: config.get('anthropic.apiKey', ''), modelPrefix: 'anthropic' };
+        case 'Gemini':
+            return { keyName: 'GEMINI_API_KEY', keyValue: config.get('gemini.apiKey', ''), modelPrefix: 'gemini' };
+        case 'GROQ':
+            return { keyName: 'GROQ_API_KEY', keyValue: config.get('groq.apiKey', ''), modelPrefix: 'groq' };
+        case 'Azure':
+            return { keyName: 'AZURE_API_KEY', keyValue: config.get('azure.apiKey', ''), modelPrefix: 'azure' };
+        case 'Cohere':
+            return { keyName: 'COHERE_API_KEY', keyValue: config.get('cohere.apiKey', ''), modelPrefix: 'cohere_chat' };
+        case 'DeepSeek':
+            return { keyName: 'DEEPSEEK_API_KEY', keyValue: config.get('deepSeek.apiKey', ''), modelPrefix:'' };
+        case 'Ollama':
+            return null;
+        case 'OpenRouter':
+            return { keyName: 'OPENROUTER_API_KEY', keyValue: config.get('openRouter.apiKey', ''), modelPrefix: 'openrouter' };
+        case 'Vertex':
+            return { keyName: 'VERTEX_API_KEY', keyValue: config.get('vertex.apiKey', ''), modelPrefix:'vertex_ai' };
+        case 'Bedrock':
+            return { keyName: 'BEDROCK_API_KEY', keyValue: config.get('bedrock.apiKey', ''), modelPrefix: 'bedrock' };
+        case 'OpenAI Compatible':
+            return { keyName: 'OPENAI_API_KEY', keyValue: config.get('openai.apiKey', ''), modelPrefix: 'openai' };
+        default:
+            return null;
+    }
+}
+async function setupEnvironmentAndModelPrefix(provider: string): Promise<{env: { [key: string]: string }, prefix: string}> {
+    const config = vscode.workspace.getConfiguration('aider');
+    let env: { [key: string]: string } = {};
+    let prefix: string = '';
+    if (provider !== 'Default') {
+        const providerKey = await getProviderApiKey(provider);
+        if (!providerKey) {
+            throw new Error(`No API key configuration found for provider: ${provider}`);
+        }
+        if (!providerKey.keyValue) {
+            throw new Error(`API key not set for provider: ${provider}`);
+        }
+        if (providerKey) {
+            env[providerKey.keyName] = providerKey.keyValue;
+            prefix = providerKey.modelPrefix;
+        }
+        if (!prefix) {
+            throw new Error(`Model prefix not defined for provider: ${provider}`);
+        }
+        switch (provider) {
+            case 'OpenAI Compatible':
+                const baseUrl = config.get<string>('openai.baseUrl', '');
+                if (!baseUrl) {
+                    throw new Error('OpenAI Compatible Base URL not set');
+                }
+                env['OPENAI_API_BASE'] = baseUrl;
+                break;
+            case 'Ollama':
+                const ollamaBaseUrl = config.get<string>('ollama.baseUrl');
+                if (!ollamaBaseUrl) {
+                    throw new Error('Ollama Base URL not set');
+                }
+                env['OLLAMA_API_BASE'] = ollamaBaseUrl;
+                break;
+            case 'Azure':
+                const azureBaseUrl = config.get<string>('azure.baseUrl');
+                const azureApiVersion = config.get<string>('azure.apiVersion');
+                if (!azureBaseUrl) {
+                    throw new Error('Azure Base URL not set');
+                }
+                if (!azureApiVersion) {
+                    throw new Error('Azure API Version not set');
+                }
+                env['AZURE_API_BASE'] = azureBaseUrl;
+                env['AZURE_API_VERSION'] = azureApiVersion;
+                break;
+        }
+    } else {
+        let openaiApiKey: string | undefined = config.get('openai.apiKey');
+        let anthropicApiKey: string | undefined = config.get('anthropic.apiKey');
+        if (!openaiApiKey && !anthropicApiKey) {
+            throw new Error('Neither OpenAI nor Anthropic API key is set for Default provider');
+        }
+        if (openaiApiKey) {
+            env["OPENAI_API_KEY"] = openaiApiKey;
+        }
+        if (anthropicApiKey) {
+            env["ANTHROPIC_API_KEY"] = anthropicApiKey;
+        }
+    }
+    return { env, prefix };
+}
 
 /**
  * Create the Aider interface (currently a terminal) and start it.
@@ -125,8 +220,6 @@ async function createAider() {
     }
     updateStatusBar();
     const config = vscode.workspace.getConfiguration('aider');
-    let openaiApiKey: string | null | undefined = config.get('openaiApiKey');
-    let anthropicApiKey: string | null | undefined = config.get('anthropicApiKey');
     let aiderCommandLine: string = config.get('commandLine') ?? 'aider';
     let workingDirectory: string | undefined = config.get('workingDirectory');
 
@@ -135,23 +228,63 @@ async function createAider() {
         vscode.window.showErrorMessage('Unable to find Git root directory. Please ensure you are in a Git repository.');
         return;
     }
-
     calculatedWorkingDirectory = gitRoot;
     let fullCommand = `${aiderCommandLine}`;
-    if (selectedModel) {
-        if (selectedModel.startsWith('custom:')) {
-            const modelName = selectedModel.substring(7);
-            fullCommand += ` ${customModels[modelName]}`;
-        } else if (selectedModel !== 'custom') {
-            fullCommand += ` ${selectedModel}`;
-        }
-    }
     if (customStartupArgs) {
         fullCommand += ` ${customStartupArgs}`;
     }
+    const useArchitect = config.get<boolean>('useArchitect', false);
+    if (useArchitect && !fullCommand.includes('--architect')) {
+        fullCommand += ' --architect';
+    }
+    const cachePrompts = config.get<boolean>('useCachePrompts', false)
+    if (cachePrompts && !fullCommand.includes('--cache-prompts')) {
+        fullCommand += '--cache-prompts'
+    }
+    const yesAlways = config.get<boolean>('yesAlways', false)
+    if (yesAlways && !fullCommand.includes('--yes-always')) {
+        fullCommand += '--yes-always'
+    }
+    const provider = config.get<string>('provider', 'Default');
+    let env: { [key: string]: string } = {};
+    let prefix:string= '';
+    const defaultModel: string | undefined = config.get<string>('defaultModel');
+    if (selectedModel && !defaultModel) {
+        if (selectedModel.startsWith('custom:')) {
+            const modelName = selectedModel.substring(7);
+            fullCommand += ` ${customModels[modelName]}`;
+        } else if (selectedModel !== 'custom' && provider == 'Default') {
+            fullCommand += ` ${selectedModel}`;
+        }
+    }
+    try {
+        const result = await setupEnvironmentAndModelPrefix(provider)
+        env = result.env;
+        prefix = result.prefix;
+    } catch (error) {
+        if (error instanceof Error) {
+            vscode.window.showErrorMessage(`Aider configuration error: ${error.message}`)
+        } else {
+            vscode.window.showErrorMessage(`An unknown error has occured`)
+        }
+    }
+    if (provider !== 'Default') {
+        if (defaultModel) {
+            fullCommand += ` --model ${prefix}/${defaultModel}`;
+        }
+        const defaultEditorModel: string|undefined = config.get<string>('defaultEditorModel');
+        if (useArchitect && !fullCommand.includes('--editor-model')) {
+            fullCommand += ` --editor-model ${prefix}/${defaultEditorModel}`
+        }
+        const defaultWeakModel: string|undefined = config.get<string>('defaultWeakModel');
+        if (!fullCommand.includes('--weak-model') && provider !== 'Default') {
+            fullCommand += `--weak-model ${prefix}/${defaultWeakModel}`
+        }
+    }
+
     fullCommand = fullCommand.trim();
-    aider = new AiderTerminal(openaiApiKey, anthropicApiKey, fullCommand, handleAiderClose, gitRoot);
-    
+    aider = new AiderTerminal(env, fullCommand, handleAiderClose, gitRoot);
+
     if (aider) {
         // Collect all open files from both sources
         const openFiles = new Set<string>();
@@ -177,7 +310,6 @@ async function createAider() {
     }
 }
 
-
 /**
  * If the Aider terminal is closed, update local variables to reflect the change.
  */
@@ -193,9 +325,9 @@ function handleAiderClose() {
 
 /**
  * Figure out which files are open in VS Code and which ones are known to be open in Aider.  Synchronize the
- * two.  
- * 
- * Note this method has a flaw -- if a user opens a file using directly using /add in Aider, we won't know 
+ * two.
+ *
+ * Note this method has a flaw -- if a user opens a file using directly using /add in Aider, we won't know
  * about it.  This might lead to duplicate /add statements.
  */
 const syncAiderAndVSCodeFiles = debounce(async () => {
@@ -223,9 +355,9 @@ const syncAiderAndVSCodeFiles = debounce(async () => {
 
     const opened = [...filesThatVSCodeKnows].filter(x => !filesThatAiderKnows.has(x));
     const closed = [...filesThatAiderKnows].filter(x => !filesThatVSCodeKnows.has(x));
-    
+
     const ignoreFilesRegex = ignoredFiles.map((pattern: string) => new RegExp(pattern.replace(/\\/g, '\\\\')));
-    
+
     const filteredOpened = opened.filter((item) => !ignoreFilesRegex.some((regex: RegExp) => regex.test(item)));
     aider.addFiles(filteredOpened.map(file => path.normalize(file)));
 
@@ -237,7 +369,7 @@ const syncAiderAndVSCodeFiles = debounce(async () => {
 
 /**
  * Find a working directory for Aider.
- * 
+ *
  * @returns A promise pointing to a working directory for Aider.
  */
 export async function findWorkingDirectory(overridePath?: string): Promise<string> {
@@ -247,7 +379,7 @@ export async function findWorkingDirectory(overridePath?: string): Promise<strin
 
     // Get the active text editor's file path
     const activeEditorPath = vscode.window.activeTextEditor?.document.uri.fsPath;
-    
+
     // If there's an active editor, use its directory
     if (activeEditorPath) {
         return path.dirname(activeEditorPath);
@@ -261,15 +393,15 @@ export async function findWorkingDirectory(overridePath?: string): Promise<strin
     // If there are multiple workspace folders or none, ask the user to select
     const folders = vscode.workspace.workspaceFolders || [];
     const items: vscode.QuickPickItem[] = [
-        ...folders.map(folder => ({ label: folder.name, description: folder.uri.fsPath })),
-        { label: "Select a folder...", description: "" }
+        ...folders.map(folder => ({label: folder.name, description: folder.uri.fsPath})),
+        {label: "Select a folder...", description: ""}
     ];
 
-    const selected = await vscode.window.showQuickPick(items, { placeHolder: "Select a folder to use with Aider" });
+    const selected = await vscode.window.showQuickPick(items, {placeHolder: "Select a folder to use with Aider"});
 
     if (selected) {
         if (selected.label === "Select a folder...") {
-            const result = await vscode.window.showOpenDialog({ canSelectFiles: false, canSelectFolders: true, canSelectMany: false });
+            const result = await vscode.window.showOpenDialog({canSelectFiles: false, canSelectFolders: true, canSelectMany: false});
             if (result && result[0]) {
                 return result[0].fsPath;
             }
@@ -298,11 +430,11 @@ function findGitDirectoryInSelfOrParents(filePath: string): string {
 }
 
 /**
- * If any API Key changes in the settings, restart the Aider terminal so it will use the new 
+ * If any API Key changes in the settings, restart the Aider terminal so it will use the new
  * API key.
  */
 vscode.workspace.onDidChangeConfiguration((e) => {
-    if (e.affectsConfiguration('aider.openaiApiKey') || e.affectsConfiguration('aider.anthropicApiKey')) {
+    if (e.affectsConfiguration('aider.openaiApiKey') || e.affectsConfiguration('aider.anthropicApiKey') || e.affectsConfiguration('aider.provider')) {
         // Stop the Aider terminal
         if (aider) {
             aider.dispose();
@@ -311,7 +443,7 @@ vscode.workspace.onDidChangeConfiguration((e) => {
 
         // Restart the Aider terminal with the new API key
         createAider();
-        
+
         // Add all currently open files
         syncAiderAndVSCodeFiles();
     }
@@ -348,7 +480,9 @@ function updateStatusBar() {
     statusBarItem.tooltip = 'Click to open Aider management menu';
     statusBarItem.show();
 }
+
 let voiceCommandKeyPressed: boolean = false;
+
 export function activate(context: vscode.ExtensionContext) {
     statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
     context.subscriptions.push(statusBarItem);
@@ -367,7 +501,6 @@ export function activate(context: vscode.ExtensionContext) {
             }
         );
     }
-
     context.subscriptions.push(vscode.commands.registerCommand('aider.openMenu', showAiderMenu));
 
     let disposable = vscode.commands.registerCommand('aider.selectModel', async () => {
@@ -383,7 +516,7 @@ export function activate(context: vscode.ExtensionContext) {
                 value: `custom:${name}`,
                 description: selectedModel === `custom:${name}` ? '(Current)' : ''
             })),
-            { label: '$(plus) Add Custom Model', value: 'add_custom' }
+            {label: '$(plus) Add Custom Model', value: 'add_custom'}
         ];
         const selectedModelOption = await vscode.window.showQuickPick(models, {
             placeHolder: 'Select a model for Aider',
@@ -402,7 +535,7 @@ export function activate(context: vscode.ExtensionContext) {
 
                 selectedModel = selectedModelOption.value;
                 updateStatusBar();
-                
+
                 const setAsDefault = await vscode.window.showQuickPick(['Yes', 'No'], {
                     placeHolder: 'Set this as the default model?'
                 });
@@ -412,7 +545,7 @@ export function activate(context: vscode.ExtensionContext) {
                 }
 
                 vscode.window.showInformationMessage(`Aider model set to: ${selectedModelOption.label.replace(/\$\([^)]+\)\s/, '')}.`);
-                
+
                 // Automatically reopen Aider with the new model
                 createAider().then(() => {
                     if (aider) {
@@ -501,7 +634,7 @@ export function activate(context: vscode.ExtensionContext) {
             aider.dropFile(filePath);
         }
     });
-    
+
     context.subscriptions.push(disposable);
 
     disposable = vscode.commands.registerCommand('aider.syncFiles', async function () {
@@ -640,88 +773,82 @@ export function activate(context: vscode.ExtensionContext) {
     });
     context.subscriptions.push(voiceCommandDisposable);
 
-    context.subscriptions.push(vscode.Disposable.from({
-        dispose: () => updateVoiceCommand(context)
-    }));
-
     // Register a code action provider
-class AiderCodeActionProvider implements vscode.CodeActionProvider {
-    provideCodeActions(document: vscode.TextDocument, range: vscode.Range | vscode.Selection, context: vscode.CodeActionContext, token: vscode.CancellationToken): vscode.ProviderResult<(vscode.Command | vscode.CodeAction)[]> {
-        const diagnostics = diagnosticsMap.get(document.uri.toString()) || [];
-        return diagnostics
-            .filter(diagnostic => range.intersection(diagnostic.range))
-            .map(diagnostic => this.createCommandCodeAction(document, diagnostic));
-    }
+    class AiderCodeActionProvider implements vscode.CodeActionProvider {
+        provideCodeActions(document: vscode.TextDocument, range: vscode.Range | vscode.Selection, context: vscode.CodeActionContext, token: vscode.CancellationToken): vscode.ProviderResult<(vscode.Command | vscode.CodeAction)[]> {
+            const diagnostics = diagnosticsMap.get(document.uri.toString()) || [];
+            return diagnostics
+                .filter(diagnostic => range.intersection(diagnostic.range))
+                .map(diagnostic => this.createCommandCodeAction(document, diagnostic));
+        }
 
-    private createCommandCodeAction(document: vscode.TextDocument, diagnostic: vscode.Diagnostic): vscode.CodeAction {
-        const action = new vscode.CodeAction('Fix with Aider', vscode.CodeActionKind.QuickFix);
-        action.command = {
-            command: 'aider.fixError',
-            title: 'Fix with Aider',
-            arguments: [document, diagnostic]
-        };
-        action.diagnostics = [diagnostic];
-        action.isPreferred = true;
-        return action;
+        private createCommandCodeAction(document: vscode.TextDocument, diagnostic: vscode.Diagnostic): vscode.CodeAction {
+            const action = new vscode.CodeAction('Fix with Aider', vscode.CodeActionKind.QuickFix);
+            action.command = {
+                command: 'aider.fixError',
+                title: 'Fix with Aider',
+                arguments: [document, diagnostic]
+            };
+            action.diagnostics = [diagnostic];
+            action.isPreferred = true;
+            return action;
+        }
     }
-}
 
     context.subscriptions.push(vscode.languages.registerCodeActionsProvider('*', new AiderCodeActionProvider(), {
         providedCodeActionKinds: [vscode.CodeActionKind.QuickFix]
     }));
 
-    // API key management functionality removed
-
-function onDidChangeDiagnostics(event: vscode.DiagnosticChangeEvent) {
-    for (const uri of event.uris) {
-        const diagnostics = vscode.languages.getDiagnostics(uri);
-        diagnosticsMap.set(uri.toString(), diagnostics);
-    }
-}
-
-async function updateAiderIgnoreFile(newPattern?: string) {
-    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-    if (!workspaceFolder) {
-        vscode.window.showErrorMessage("No workspace folder found.");
-        return;
+    function onDidChangeDiagnostics(event: vscode.DiagnosticChangeEvent) {
+        for (const uri of event.uris) {
+            const diagnostics = vscode.languages.getDiagnostics(uri);
+            diagnosticsMap.set(uri.toString(), diagnostics);
+        }
     }
 
-    const aiderIgnorePath = vscode.Uri.joinPath(workspaceFolder.uri, '.aider.ignore');
-    if (newPattern) {
-        ignoredFiles.push(newPattern);
-    }
-    await vscode.workspace.fs.writeFile(aiderIgnorePath, Buffer.from(ignoredFiles.join('\n')));
-}
+    async function updateAiderIgnoreFile(newPattern?: string) {
+        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+        if (!workspaceFolder) {
+            vscode.window.showErrorMessage("No workspace folder found.");
+            return;
+        }
 
-async function ignoreFile(uri: vscode.Uri) {
-    if (!uri) {
-        vscode.window.showErrorMessage("No file selected.");
-        return;
-    }
-
-    const filePath = vscode.workspace.asRelativePath(uri);
-    await updateAiderIgnoreFile(filePath);
-    vscode.window.showInformationMessage(`Added ${filePath} to ignored files.`);
-    
-    // Refresh the ignoredFiles array
-    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-    if (workspaceFolder) {
         const aiderIgnorePath = vscode.Uri.joinPath(workspaceFolder.uri, '.aider.ignore');
-        const content = await vscode.workspace.fs.readFile(aiderIgnorePath);
-        ignoredFiles = content.toString().split('\n').filter(line => line.trim() !== '');
-    }
-}
-
-async function generateReadmeWithAider(workspaceRoot: string): Promise<void> {
-    if (!aider) {
-        throw new Error("Aider is not running");
+        if (newPattern) {
+            ignoredFiles.push(newPattern);
+        }
+        await vscode.workspace.fs.writeFile(aiderIgnorePath, Buffer.from(ignoredFiles.join('\n')));
     }
 
-    const prompt = `Generate a comprehensive, user-friendly, and developer-friendly README.md file for the project in the current workspace. The README should be tailored to the specific needs and nature of the project. Include the following sections: 1. Project Title and Description 2. Features 3. Prerequisites 4. Installation 5. Usage 6. Configuration 7. API Reference (if applicable) 8. Contributing 9. Testing 10. Deployment (if applicable) 11. Built With (technologies used) 12. Versioning 13. Authors 14. License 15. Acknowledgments. For each section, provide detailed and relevant information based on the project files and structure. Ensure the content is clear, concise, and helpful for both users and developers. If any section is not applicable to this project, you may omit it. Additionally: Use proper Markdown formatting for headers, lists, code blocks, etc. Include badges where appropriate (e.g., build status, version, license). If it's an open-source project, include information on how to contribute. Add a table of contents for easy navigation. Include examples and screenshots if possible. Please generate the README content now.`;
+    async function ignoreFile(uri: vscode.Uri) {
+        if (!uri) {
+            vscode.window.showErrorMessage("No file selected.");
+            return;
+        }
 
-    aider.sendCommand(prompt.replace(/\n/g, ' ').trim());
-    vscode.window.showInformationMessage('README generation request sent to Aider. Please wait for the response.');
-}
+        const filePath = vscode.workspace.asRelativePath(uri);
+        await updateAiderIgnoreFile(filePath);
+        vscode.window.showInformationMessage(`Added ${filePath} to ignored files.`);
+
+        // Refresh the ignoredFiles array
+        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+        if (workspaceFolder) {
+            const aiderIgnorePath = vscode.Uri.joinPath(workspaceFolder.uri, '.aider.ignore');
+            const content = await vscode.workspace.fs.readFile(aiderIgnorePath);
+            ignoredFiles = content.toString().split('\n').filter(line => line.trim() !== '');
+        }
+    }
+
+    async function generateReadmeWithAider(workspaceRoot: string): Promise<void> {
+        if (!aider) {
+            throw new Error("Aider is not running");
+        }
+
+        const prompt = `Generate a comprehensive, user-friendly, and developer-friendly README.md file for the project in the current workspace. The README should be tailored to the specific needs and nature of the project. Include the following sections: 1. Project Title and Description 2. Features 3. Prerequisites 4. Installation 5. Usage 6. Configuration 7. API Reference (if applicable) 8. Contributing 9. Testing 10. Deployment (if applicable) 11. Built With (technologies used) 12. Versioning 13. Authors 14. License 15. Acknowledgments. For each section, provide detailed and relevant information based on the project files and structure. Ensure the content is clear, concise, and helpful for both users and developers. If any section is not applicable to this project, you may omit it. Additionally: Use proper Markdown formatting for headers, lists, code blocks, etc. Include badges where appropriate (e.g., build status, version, license). If it's an open-source project, include information on how to contribute. Add a table of contents for easy navigation. Include examples and screenshots if possible. Please generate the README content now.`;
+
+        aider.sendCommand(prompt.replace(/\n/g, ' ').trim());
+        vscode.window.showInformationMessage('README generation request sent to Aider. Please wait for the response.');
+    }
 }
 
 class RefactorCodeActionProvider implements vscode.CodeActionProvider {
@@ -787,7 +914,7 @@ async function setCustomStartupArgs() {
     if (args !== undefined) {
         customStartupArgs = args;
         vscode.window.showInformationMessage(`Custom startup arguments set to: ${customStartupArgs}`);
-        
+
         // If Aider is running, inform the user that they need to restart it
         if (aider && aider.isActive()) {
             vscode.window.showInformationMessage('Please restart Aider for the new startup arguments to take effect.');
@@ -831,6 +958,7 @@ export function deactivate() {
         clearTimeout(aider.voiceCommandTimeout);
     }
 }
+
 async function showAiderMenu() {
     const items: vscode.QuickPickItem[] = [
         {
@@ -889,6 +1017,7 @@ async function showAiderMenu() {
         }
     }
 }
+
 function findGitRoot(startPath: string): string | null {
     let currentPath = startPath;
     while (currentPath !== path.parse(currentPath).root) {
@@ -898,26 +1027,4 @@ function findGitRoot(startPath: string): string | null {
         currentPath = path.dirname(currentPath);
     }
     return null;
-}
-
-let voiceCommandTimeout: NodeJS.Timeout | null = null;
-
-function updateVoiceCommand(context: vscode.ExtensionContext) {
-    const config = vscode.workspace.getConfiguration('aider');
-    const keybinding = config.get('voiceCommand', 'ctrl+shift+v');
-
-    context.subscriptions.push(vscode.commands.registerCommand('aider.updateVoiceCommandKeybinding', async () => {
-        const newKeybinding = await vscode.window.showInputBox({
-            prompt: 'Enter new keybinding for Aider voice command',
-            value: keybinding
-        });
-
-        if (newKeybinding) {
-            await config.update('voiceCommandKey', newKeybinding, vscode.ConfigurationTarget.Global);
-            vscode.window.showInformationMessage(`Aider voice command keybinding updated to: ${newKeybinding}`);
-        }
-    }));
-
-    // Update keybinding
-    vscode.commands.executeCommand('setContext', 'aider.voiceCommandKeybinding', keybinding);
 }
