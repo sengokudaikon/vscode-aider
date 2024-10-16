@@ -43,11 +43,11 @@ export class AiderTerminal implements AiderInterface {
     private responseHandlers: ((response: string) => void)[] = [];
     private voiceCommandActive: boolean = false;
     voiceCommandTimeout: NodeJS.Timeout | null = null;
-    toggleVoiceCommand(isKeyDown: boolean) {
-        if (isKeyDown && !this.voiceCommandActive) {
+    toggleVoiceCommand(): void {
+        if (!this.voiceCommandActive) {
             this.sendCommand('/voice');
             this.voiceCommandActive = true;
-        } else if (!isKeyDown && this.voiceCommandActive) {
+        } else {
             if (this.voiceCommandTimeout) {
                 clearTimeout(this.voiceCommandTimeout);
             }
@@ -55,7 +55,7 @@ export class AiderTerminal implements AiderInterface {
                 this.sendEnter();
                 this.voiceCommandActive = false;
                 this.voiceCommandTimeout = null;
-            }, 500);
+            }, 500); // 500ms delay, adjust as needed
         }
     }
 

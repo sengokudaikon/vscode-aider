@@ -636,40 +636,14 @@ export function activate(context: vscode.ExtensionContext) {
     const voiceCommandDisposable = vscode.commands.registerCommand('aider.voiceCommand', () => {
         if (aider) {
             aider.toggleVoiceCommand(voiceCommandKeyPressed);
-            setTimeout(() => {
-                if (aider) {
-                    aider.toggleVoiceCommand(false);
-                }
-            }, 100);
         }
     });
     context.subscriptions.push(voiceCommandDisposable);
-    const keyDownDisposable = vscode.commands.registerCommand('type', (args) => {
-        const voiceCommandKey = vscode.workspace.getConfiguration('aider').get('voiceCommand');
-        if (args.text === voiceCommandKey) {
-            voiceCommandKeyPressed = true;
-            if (aider) {
-                aider.toggleVoiceCommand(voiceCommandKeyPressed);
-                vscode.window.showInformationMessage("Voice input started. Release the key to stop.");
-            }
-        }
-    });
 
-    const keyUpDisposable = vscode.commands.registerCommand('type', (args) => {
-        const voiceCommandKey = vscode.workspace.getConfiguration('aider').get('voiceCommand');
-        if (args.text === voiceCommandKey && voiceCommandKeyPressed) {
-            voiceCommandKeyPressed = false;
-            if (aider) {
-                aider.toggleVoiceCommand(voiceCommandKeyPressed);
-                vscode.window.showInformationMessage("Voice input stopped.");
-            }
-        }
-    });
-    context.subscriptions.push(keyDownDisposable, keyUpDisposable);
     context.subscriptions.push(vscode.Disposable.from({
         dispose: () => updateVoiceCommand(context)
     }));
-    updateVoiceCommand(context);
+
     // Register a code action provider
 class AiderCodeActionProvider implements vscode.CodeActionProvider {
     provideCodeActions(document: vscode.TextDocument, range: vscode.Range | vscode.Selection, context: vscode.CodeActionContext, token: vscode.CancellationToken): vscode.ProviderResult<(vscode.Command | vscode.CodeAction)[]> {

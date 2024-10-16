@@ -46,7 +46,7 @@ Supercharge your coding experience with the VSCode Aider Extension! This powerfu
 1. Open VSCode Settings (File > Preferences > Keyboard Shortcuts).
 2. Search for "Aider: Voice Command".
 3. Assign your preferred keybinding (e.g., Ctrl+Shift+V).
-4. Press the assigned key once to activate voice input, press it again to send the command to Aider.
+4. Press the assigned key once to activate voice input, release it to send the command to Aider.
 
 ## 🐛 Known Issues
 

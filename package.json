@@ -87,10 +87,6 @@
             {
                 "command": "aider.voiceCommand",
                 "title": "Aider: Voice Command"
-            },
-            {
-                "command": "aider.updateVoiceCommandKeybinding",
-                "title": "Aider: Update Voice Command Keybinding"
             }
         ],
         "menus": {
