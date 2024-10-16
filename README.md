@@ -51,6 +51,6 @@ For a detailed list of our latest improvements and updates, check out the CHANGE
 ## 🙏 Acknowledgements
 
 - 🧙‍♂️ Aider CLI tool created by the brilliant [Paul Gauthier](https://github.com/paul-gauthier)
-- 🍀 This extension is a fork of [Matt Flower](https://github.com/mattflower)'s fantastic work and [Filip Koch](https://gitlab.apertia.cz/filip.koch/vscode-aider)'s continuing work.
+- 🍀 This extension is a fork of [Matt Flower](https://github.com/mattflower)'s fantastic work and [Filip Koch](https://gitlab.apertia.cz/filip.koch/vscode-aider)'s continued support.
 
 For more Aider wisdom, visit the [Aider documentation](https://aider.chat/docs/). Happy coding! 🚀✨
