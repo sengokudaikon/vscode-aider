@@ -164,12 +164,6 @@ async function createAider() {
             }
             filesThatAiderKnows.clear();
         }
-
-        // Check if a model is specified in custom startup args
-        if (!customStartupArgs.includes('--model') && !customStartupArgs.includes('-m')) {
-            throw new Error('No model specified. Please specify a model using --model in the startup arguments (e.g., --model gpt-4).');
-        }
-
         if (process.platform === 'win32') {
             const response = await vscode.window.showWarningMessage(
                 'Aider is not yet fully optimized for Windows. Some features may behave unexpectedly. Do you want to continue?',
@@ -221,7 +215,7 @@ async function createAider() {
             }
         }
         const defaultModel: string | undefined = config.get<string>('defaultModel');
-        if (!defaultModel) {
+        if (!defaultModel && !customStartupArgs.includes('--model') && !customStartupArgs.includes('-m')) {
             vscode.window.showErrorMessage("No default model provided. Please ensure you have configured everything correctly.");
         }
         fullCommand += ` --model ${defaultModel}`;
