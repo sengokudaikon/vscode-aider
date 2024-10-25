@@ -3,7 +3,7 @@
   "displayName": "VSCode Aider (Sengoku)",
   "description": "Run Aider directly within VSCode for seamless integration and enhanced workflow.",
   "icon": "images/logo.png",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "publisher": "sengokudaikon",
   "repository": {
     "type": "git",
@@ -51,10 +51,6 @@
       {
         "command": "aider.close",
         "title": "Aider: Close"
-      },
-      {
-        "command": "aider.selectModel",
-        "title": "Aider: Select Model"
       },
       {
         "command": "aider.generateReadme",
@@ -153,26 +149,6 @@
     "configuration": {
       "title": "Aider",
       "properties": {
-        "aider.provider": {
-          "type": "string",
-          "enum": [
-            "Default",
-            "OpenAI",
-            "Anthropic",
-            "Gemini",
-            "GROQ",
-            "Azure",
-            "Cohere",
-            "DeepSeek",
-            "Ollama",
-            "OpenRouter",
-            "Vertex",
-            "Bedrock",
-            "OpenAI Compatible"
-          ],
-          "default": "Default",
-          "description": "Select the AI provider for Aider"
-        },
         "aider.useVoiceCommands": {
           "type": "boolean",
           "default": true,
@@ -234,79 +210,66 @@
         "aider.openai.apiKey": {
           "type": "string",
           "default": "",
-          "description": "OpenAI API Key.",
-          "when": "config.aider.provider == 'Default' || config.aider.provider == 'OpenAI' || config.aider.provider == 'OpenAI Compatible'"
+          "description": "OpenAI API Key."
         },
         "aider.openai.baseUrl": {
           "type": "string",
           "default": "",
-          "description": "Base URL for OpenAI-Compatible provider",
-          "when": "config.aider.provider == 'OpenAI Compatible'"
+          "description": "Base URL for OpenAI-Compatible provider"
         },
         "aider.anthropic.apiKey": {
           "type": "string",
           "default": "",
-          "description": "Anthropic API Key.",
-          "when": "config.aider.provider == 'Default' || config.aider.provider == 'Anthropic'"
+          "description": "Anthropic API Key."
         },
         "aider.gemini.apiKey": {
           "type": "string",
           "default": "",
-          "description": "API key for Gemini",
-          "when": "config.aider.provider == 'Gemini'"
+          "description": "API key for Gemini"
         },
         "aider.groq.apiKey": {
           "type": "string",
           "default": "",
-          "description": "API key for GROQ",
-          "when": "config.aider.provider == 'GROQ'"
+          "description": "API key for GROQ"
         },
         "aider.azure.apiKey": {
           "type": "string",
           "default": "",
-          "description": "API key for Azure",
-          "when": "config.aider.provider == 'Azure'"
+          "description": "API key for Azure"
         },
         "aider.azure.baseUrl": {
           "type": "string",
           "default": "",
-          "description": "Base url for your Azure AI provider",
-          "when": "config.aider.provider == 'Azure'"
+          "description": "Base url for your Azure AI provider"
         },
         "aider.azure.apiVersion": {
           "type": "string",
-          "default": "2024-06-01-preview",
-          "when": "config.aider.provider == 'Azure'"
+          "default": "2024-06-01-preview"
         },
         "aider.cohere.apiKey": {
           "type": "string",
           "default": "",
-          "description": "API key for Cohere",
-          "when": "config.aider.provider == 'Cohere'"
+          "description": "API key for Cohere"
         },
         "aider.deepSeek.apiKey": {
           "type": "string",
           "default": "",
-          "description": "API key for DeepSeek",
-          "when": "config.aider.provider == 'DeepSeek'"
+          "description": "API key for DeepSeek"
         },
         "aider.openRouter.apiKey": {
           "type": "string",
           "default": "",
-          "description": "API key for OpenRouter",
-          "when": "config.aider.provider == 'OpenRouter'"
+          "description": "API key for OpenRouter"
         },
         "aider.vertex.apiKey": {
           "type": "string",
           "default": "",
-          "description": "API key for Vertex",
-          "when": "config.aider.provider == 'Vertex'"
+          "description": "API key for Vertex"
         },
         "aider.bedrock.apiKey": {
           "type": "string",
           "default": "",
-          "description": "API key for Bedrock",
-          "when": "config.aider.provider == 'Bedrock'"
+          "description": "API key for Bedrock"
         },
         "aider.ollama.baseUrl": {
           "type": "string",

@@ -1,6 +1,12 @@
 # 🚀 ChangeLog
 
 All notable changes to this project will be documented in this file. Let's celebrate our progress! 🎉
+
+## [1.1.4] - 2024-10-17
+### 🔧 Changed
+- ⚙️ Simplified model configuration - now accepts any model directly through startup arguments
+- 🗑️ Removed predefined model selections and custom model configurations
+- 🎯 Streamlined API key configuration without provider restrictions
 ## [1.1.2] - 2024-10-16
 ### 🔧 Changed
 - ⚙️ Allows opt-out for voice commands

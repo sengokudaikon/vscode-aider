@@ -1,34 +1,3 @@
-{                                                                                                                                                                                                                                                                                                    
-  "defaultModels": [                                                                                                                                                                                                                                                                                 
-    {                                                                                                                                                                                                                                                                                                
-      "label": "Claude 3.5 Sonnet",                                                                                                                                                                                                                                                                  
-      "value": "--sonnet",                                                                                                                                                                                                                                                                           
-      "icon": "sparkle"                                                                                                                                                                                                                                                                              
-    },
-    {
-      "label": "Claude 3 Opus",
-      "value": "--opus",
-      "icon": "book"
-    },
-    {                                                                                                                                                                                                                                                                                                
-      "label": "GPT-4o",                                                                                                                                                                                                                                                                             
-      "value": "--4o",                                                                                                                                                                                                                                                                               
-      "icon": "robot"                                                                                                                                                                                                                                                                                
-    },
-    {
-      "label": "GPT-4o-mini",
-      "value": "--4o-mini",
-      "icon": "alien"
-    },
-    {                                                                                                                                                                                                                                                                                                
-      "label": "O1 Preview",                                                                                                                                                                                                                                                                
-      "value": "--o1-preview",                                                                                                                                                                                                                                                                       
-      "icon": "star"                                                                                                                                                                                                                                                                                 
-    },                                                                                                                                                                                                                                                                                               
-    {                                                                                                                                                                                                                                                                                                
-      "label": "O1 Mini",                                                                                                                                                                                                                                                                        
-      "value": "--o1-mini",                                                                                                                                                                                                                                                                          
-      "icon": "zap"                                                                                                                                                                                                                                                                                  
-    }
-  ]                                                                                                                                                                                                                                                                                                  
-} 
+{
+    "defaultModels": []
+}
